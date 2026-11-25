@@ -31,7 +31,17 @@ export interface AiExtraction {
 export class BackendError extends Error {
   constructor(
     message: string,
-    public code: 'offline' | 'auth' | 'disabled' | 'quota' | 'not_found' | 'too_large' | 'viewer' | 'blocked' | 'server' | 'unknown' = 'unknown',
+    public code:
+      | 'offline'
+      | 'auth'
+      | 'disabled'
+      | 'quota'
+      | 'not_found'
+      | 'too_large'
+      | 'viewer'
+      | 'blocked'
+      | 'server'
+      | 'unknown' = 'unknown',
   ) {
     super(message);
   }
@@ -64,7 +74,10 @@ export interface Backend {
   saveProfile(p: WeddingProfile): Promise<void>;
   // documents
   listDocuments(): Promise<DocumentRecord[]>;
-  uploadDocument(file: Blob, meta: Omit<DocumentRecord, 'id' | 'ownerId' | 'createdAt' | 'storagePath'>): Promise<DocumentRecord>;
+  uploadDocument(
+    file: Blob,
+    meta: Omit<DocumentRecord, 'id' | 'ownerId' | 'createdAt' | 'storagePath'>,
+  ): Promise<DocumentRecord>;
   updateDocument(d: DocumentRecord): Promise<void>;
   getDocumentBlob(d: DocumentRecord): Promise<Blob>;
   deleteDocument(d: DocumentRecord): Promise<void>;
@@ -80,7 +93,10 @@ export interface Backend {
   // services
   geocode(q: string): Promise<GeoResult | null>;
   aiParse(pages: string[], filename: string): Promise<AiExtraction>;
-  aiEnrich(venue: { name: string; area?: string; website?: string }, fields: string[]): Promise<AiFieldValue[]>;
+  aiEnrich(
+    venue: { name: string; area?: string; website?: string },
+    fields: string[],
+  ): Promise<AiFieldValue[]>;
   fetchDocument(url: string): Promise<Blob>;
   deleteAccount(): Promise<void>;
 }

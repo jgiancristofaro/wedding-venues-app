@@ -1,10 +1,17 @@
-export function money(n: number | null | undefined, opts: { compact?: boolean; currency?: string } = {}): string {
+export function money(
+  n: number | null | undefined,
+  opts: { compact?: boolean; currency?: string } = {},
+): string {
   if (n == null || !Number.isFinite(n)) return '—';
   if (opts.compact && Math.abs(n) >= 1000) {
     const k = n / 1000;
     return `$${k >= 100 ? Math.round(k) : k.toFixed(1).replace(/\.0$/, '')}k`;
   }
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: opts.currency ?? 'USD', maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: opts.currency ?? 'USD',
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 export function range(lo: number | null, hi: number | null): string {
@@ -15,7 +22,13 @@ export function range(lo: number | null, hi: number | null): string {
 
 export function dateTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 export function shortDate(iso?: string): string {
   if (!iso) return '';

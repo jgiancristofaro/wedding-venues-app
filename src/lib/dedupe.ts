@@ -19,7 +19,22 @@ export interface DedupeMatch {
   reason: string;
 }
 
-const STOP = new Set(['the', 'at', 'of', 'and', 'a', 'venue', 'events', 'event', 'weddings', 'wedding', 'nyc', 'ny', 'llc', 'inc']);
+const STOP = new Set([
+  'the',
+  'at',
+  'of',
+  'and',
+  'a',
+  'venue',
+  'events',
+  'event',
+  'weddings',
+  'wedding',
+  'nyc',
+  'ny',
+  'llc',
+  'inc',
+]);
 
 export function normalizeName(s: string): string {
   return s
@@ -85,7 +100,8 @@ function host(u?: string) {
 
 export function similarity(x: DedupeCandidate, y: DedupeCandidate): { score: number; reason: string } {
   const hx = host(x.website);
-  if (hx && hx === host(y.website) && !hx.endsWith('example.com')) return { score: 0.99, reason: 'Same website' };
+  if (hx && hx === host(y.website) && !hx.endsWith('example.com'))
+    return { score: 0.99, reason: 'Same website' };
   const a = normalizeName(x.name);
   const b = normalizeName(y.name);
   if (!a || !b) return { score: 0, reason: '' };

@@ -44,9 +44,14 @@
     @apply bg-bg text-ink font-sans antialiased;
     font-feature-settings: 'cv11', 'ss01';
   }
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     @apply font-serif;
-    font-variation-settings: 'opsz' 72, 'SOFT' 50;
+    font-variation-settings:
+      'opsz' 72,
+      'SOFT' 50;
     letter-spacing: -0.015em;
   }
   :focus-visible {
@@ -64,10 +69,18 @@
     @apply inline-flex items-center justify-center gap-2 rounded-full px-4 h-11 text-sm font-medium transition
       disabled:opacity-50 disabled:cursor-not-allowed select-none whitespace-nowrap;
   }
-  .btn-primary { @apply btn bg-accent text-accent-ink hover:brightness-110 active:brightness-95 shadow-sm; }
-  .btn-secondary { @apply btn bg-surface border border-line text-ink hover:bg-sunken; }
-  .btn-ghost { @apply btn text-ink hover:bg-sunken; }
-  .btn-sm { @apply h-9 px-3 text-[13px]; }
+  .btn-primary {
+    @apply btn bg-accent text-accent-ink hover:brightness-110 active:brightness-95 shadow-sm;
+  }
+  .btn-secondary {
+    @apply btn bg-surface border border-line text-ink hover:bg-sunken;
+  }
+  .btn-ghost {
+    @apply btn text-ink hover:bg-sunken;
+  }
+  .btn-sm {
+    @apply h-9 px-3 text-[13px];
+  }
   .icon-btn {
     @apply inline-flex items-center justify-center rounded-full h-11 w-11 text-ink hover:bg-sunken transition shrink-0;
   }
@@ -75,27 +88,51 @@
     @apply w-full h-11 rounded-xl border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted
       focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/60;
   }
-  textarea.input { @apply h-auto py-2; }
-  .card { @apply bg-surface border border-line/70 rounded-2xl shadow-card; }
+  textarea.input {
+    @apply h-auto py-2;
+  }
+  .card {
+    @apply bg-surface border border-line/70 rounded-2xl shadow-card;
+  }
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 h-9 text-[13px] text-ink
       hover:border-ink/30 transition whitespace-nowrap;
   }
-  .chip[aria-pressed='true'], .chip-on { @apply bg-ink text-bg border-ink; }
-  .label { @apply text-xs font-medium uppercase tracking-[0.12em] text-muted; }
+  .chip[aria-pressed='true'],
+  .chip-on {
+    @apply bg-ink text-bg border-ink;
+  }
+  .label {
+    @apply text-xs font-medium uppercase tracking-[0.12em] text-muted;
+  }
   .skeleton {
-    background: linear-gradient(90deg, rgb(var(--sunken)) 0, rgb(var(--line) / 0.6) 50%, rgb(var(--sunken)) 100%);
+    background: linear-gradient(
+      90deg,
+      rgb(var(--sunken)) 0,
+      rgb(var(--line) / 0.6) 50%,
+      rgb(var(--sunken)) 100%
+    );
     background-size: 800px 100%;
     @apply animate-shimmer rounded-xl;
   }
-  .prose-note p { @apply my-1; }
-  .prose-note ul { @apply list-disc pl-5; }
-  .prose-note ol { @apply list-decimal pl-5; }
-  .prose-note a { @apply underline; }
+  .prose-note p {
+    @apply my-1;
+  }
+  .prose-note ul {
+    @apply list-disc pl-5;
+  }
+  .prose-note ol {
+    @apply list-decimal pl-5;
+  }
+  .prose-note a {
+    @apply underline;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
@@ -104,11 +141,28 @@
 }
 
 @media print {
-  header, nav, .no-print, [data-no-print] { display: none !important; }
-  body { background: white; }
-  .card { box-shadow: none; break-inside: avoid; }
-  main { padding: 0 !important; }
+  header,
+  nav,
+  .no-print,
+  [data-no-print] {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  .card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  main {
+    padding: 0 !important;
+  }
 }
 
-.leaflet-container { font-family: inherit; background: rgb(var(--sunken)); }
-.dark .leaflet-tile { filter: brightness(0.75) contrast(1.1) saturate(0.6); }
+.leaflet-container {
+  font-family: inherit;
+  background: rgb(var(--sunken));
+}
+.dark .leaflet-tile {
+  filter: brightness(0.75) contrast(1.1) saturate(0.6);
+}

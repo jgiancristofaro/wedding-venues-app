@@ -20,7 +20,9 @@ export interface SheetData {
 }
 
 const KNOWN = new Set(
-  [...FIELD_DEFS.flatMap((f) => f.synonyms), ...EXTRA_TARGETS.flatMap((t) => t.synonyms)].map(normalizeHeader),
+  [...FIELD_DEFS.flatMap((f) => f.synonyms), ...EXTRA_TARGETS.flatMap((t) => t.synonyms)].map(
+    normalizeHeader,
+  ),
 );
 
 function cellText(v: unknown): string {
@@ -36,7 +38,12 @@ function headerScore(row: string[]): number {
   let texty = 0;
   for (const c of filled) {
     const n = normalizeHeader(c);
-    if (KNOWN.has(n) || (c.length < 30 && [...KNOWN].some((k) => k.length > 3 && new RegExp(`(^| )${k.replace(/[$/%]/g, '')}( |$)`).test(n)))) known++;
+    if (
+      KNOWN.has(n) ||
+      (c.length < 30 &&
+        [...KNOWN].some((k) => k.length > 3 && new RegExp(`(^| )${k.replace(/[$/%]/g, '')}( |$)`).test(n)))
+    )
+      known++;
     if (/[a-z]/i.test(c) && !/^\$|^\d/.test(c) && c.length < 40) texty++;
   }
   return known * 2 + texty * 0.5 - (filled.length - texty) * 0.5;
@@ -88,14 +95,28 @@ export function analyzeGrid(name: string, grid: string[][], rowNums: number[]): 
     rowNumbers.push(rowNums[i]);
   }
   // Drop columns that are completely empty in data (except named)
-  return { name, headerRow: best, headers, rows, rowNumbers, score: bestScore + Math.min(rows.length, 50) * 0.1 };
+  return {
+    name,
+    headerRow: best,
+    headers,
+    rows,
+    rowNumbers,
+    score: bestScore + Math.min(rows.length, 50) * 0.1,
+  };
 }
 
 /** Parse a workbook (xlsx/xls/csv bytes) into analyzed sheets, best first. */
-export function readWorkbook(XLSX: XLSX, data: ArrayBuffer | Uint8Array | string, opts: { csv?: boolean } = {}): SheetData[] {
+export function readWorkbook(
+  XLSX: XLSX,
+  data: ArrayBuffer | Uint8Array | string,
+  opts: { csv?: boolean } = {},
+): SheetData[] {
   const wb =
     typeof data === 'string' || opts.csv
-      ? XLSX.read(typeof data === 'string' ? data : new TextDecoder().decode(data), { type: 'string', cellDates: true })
+      ? XLSX.read(typeof data === 'string' ? data : new TextDecoder().decode(data), {
+          type: 'string',
+          cellDates: true,
+        })
       : XLSX.read(data, { type: 'array', cellDates: true });
   const sheets = wb.SheetNames.map((n) => {
     const { grid, rowNums } = sheetToGrid(XLSX, wb.Sheets[n]);

@@ -75,8 +75,7 @@ interface EvalResult {
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
-const usd = (n: number) =>
-  '$' + Math.round(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const pct = (n: number) => `${+n.toFixed(3)}%`;
 
 export function seasonOf(month: number, rules: PricingRules): Season {
@@ -152,7 +151,9 @@ function catToLine(c: CostCategory | undefined, fallback: CostCategory): LineCat
 
 function addonDefaultCategory(a: AddonComponent): CostCategory {
   if (a.category) return a.category;
-  return a.addonType === 'cake_cutting' || a.addonType === 'corkage' || a.addonType === 'bar' ? 'fnb' : 'other';
+  return a.addonType === 'cake_cutting' || a.addonType === 'corkage' || a.addonType === 'bar'
+    ? 'fnb'
+    : 'other';
 }
 
 export function perPersonPackages(rules: PricingRules | undefined): PerPersonComponent[] {
@@ -197,7 +198,10 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
           detail: rate.label || (rate.when ? `Rate for ${when}` : undefined),
         });
       } else if (c.rates.length) {
-        issues.push({ text: `No ${c.label?.toLowerCase() || 'site fee'} listed for ${when}`, severity: 'minor' });
+        issues.push({
+          text: `No ${c.label?.toLowerCase() || 'site fee'} listed for ${when}`,
+          severity: 'minor',
+        });
       }
     }
   }
@@ -223,7 +227,10 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
     if (c.kind !== 'capacity_tier') continue;
     const tier = pickTier(c, s, rules);
     if (!tier.rate) {
-      issues.push({ text: `No capacity-tier price matches ${s.guests} guests on ${when}`, severity: 'major' });
+      issues.push({
+        text: `No capacity-tier price matches ${s.guests} guests on ${when}`,
+        severity: 'major',
+      });
       continue;
     }
     if (tier.note) issues.push({ text: tier.note, severity: 'major' });
@@ -254,10 +261,14 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
         amount: r2(billed * rate.amount),
         detail: `${billed} guests × ${usd(rate.amount)}${pkg.name ? ` (${pkg.name})` : ''}`,
       });
-      if (billed > s.guests) assumptions.push(`${pkg.name} has a ${pkg.minGuests}-guest minimum; billed for ${billed}.`);
+      if (billed > s.guests)
+        assumptions.push(`${pkg.name} has a ${pkg.minGuests}-guest minimum; billed for ${billed}.`);
       if (cat === 'fnb') fnbFromVenue = fnbProvided = true;
     } else {
-      issues.push({ text: `No per-person price for ${pkg.name} at ${s.guests} guests on ${when}`, severity: 'major' });
+      issues.push({
+        text: `No per-person price for ${pkg.name} at ${s.guests} guests on ${when}`,
+        severity: 'major',
+      });
     }
   }
 
@@ -277,7 +288,9 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
       category: catToLine(cat, 'other'),
       amount: r2(qty * rate.amount),
       detail:
-        (c.unit === 'flat' ? usd(rate.amount) : `${qty} × ${usd(rate.amount)}${c.unit === 'per_hour' ? '/hr' : '/guest'}`) +
+        (c.unit === 'flat'
+          ? usd(rate.amount)
+          : `${qty} × ${usd(rate.amount)}${c.unit === 'per_hour' ? '/hr' : '/guest'}`) +
         (c.required ? ' · required' : ' · selected'),
     });
     // Bar/corkage/cake fees are F&B charges (subject to service) but don't feed the guests.
@@ -296,7 +309,10 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
         detail: `${extra} h × ${usd(rules.overtimePerHour)}/h beyond ${hoursIncluded} included`,
       });
     } else {
-      issues.push({ text: `You want ${hours} h but only ${hoursIncluded} are included and no overtime rate is listed`, severity: 'minor' });
+      issues.push({
+        text: `You want ${hours} h but only ${hoursIncluded} are included and no overtime rate is listed`,
+        severity: 'minor',
+      });
     }
   }
 
@@ -324,7 +340,10 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
           detail: `High case assumes spend ${Math.round((MINIMUM_ONLY_HIGH_FACTOR - 1) * 100)}% over the minimum`,
         });
       }
-      issues.push({ text: 'No per-person menu pricing — assumed you spend exactly the F&B minimum', severity: 'minor' });
+      issues.push({
+        text: 'No per-person menu pricing — assumed you spend exactly the F&B minimum',
+        severity: 'minor',
+      });
     } else {
       const pp = OUTSIDE_CATERING_PP[opts.level];
       lines.push({
@@ -342,7 +361,8 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
     }
   }
 
-  const sumCat = (cat: LineCategory) => lines.filter((l) => l.category === cat).reduce((a, l) => a + l.amount, 0);
+  const sumCat = (cat: LineCategory) =>
+    lines.filter((l) => l.category === cat).reduce((a, l) => a + l.amount, 0);
   let fnb = sumCat('fnb');
   const rental = sumCat('rental');
   const other = sumCat('addons');
@@ -357,7 +377,10 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
       label: fnb > 0 ? 'F&B minimum shortfall' : 'Food & beverage minimum',
       category: 'fnb',
       amount: r2(topUp),
-      detail: fnb > 0 ? `Spend ${usd(fnb)} is below the ${usd(minRate.amount)} minimum` : `${usd(minRate.amount)} minimum spend`,
+      detail:
+        fnb > 0
+          ? `Spend ${usd(fnb)} is below the ${usd(minRate.amount)} minimum`
+          : `${usd(minRate.amount)} minimum spend`,
     });
     fnb = minRate.amount;
   }
@@ -412,15 +435,20 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
   const taxOnSc = ch.taxOnServiceCharge ?? true;
   const taxOnAdmin = ch.taxOnAdminFee ?? true;
   const taxOnGrat = ch.taxOnGratuity ?? false;
-  let taxable = fnb + rental + other + (taxOnSc ? scAmt : 0) + (taxOnAdmin ? adminAmt : 0) + (taxOnGrat ? gratAmt : 0);
+  let taxable =
+    fnb + rental + other + (taxOnSc ? scAmt : 0) + (taxOnAdmin ? adminAmt : 0) + (taxOnGrat ? gratAmt : 0);
 
   // Minimum that includes service and/or tax: compare after charges, top-up is final.
   if (minRate && !minExclusive) {
-    const fnbTaxPart = minimum?.includesTax ? ((fnb + (taxOnSc && scBase === 'fnb' ? scAmt : 0)) * taxPct) / 100 : 0;
+    const fnbTaxPart = minimum?.includesTax
+      ? ((fnb + (taxOnSc && scBase === 'fnb' ? scAmt : 0)) * taxPct) / 100
+      : 0;
     const comparable = fnb + (minimum?.includesServiceCharge && scBase === 'fnb' ? scAmt : 0) + fnbTaxPart;
     if (comparable < minRate.amount) {
       const topUp = r2(minRate.amount - comparable);
-      const inc = [minimum?.includesServiceCharge && 'service', minimum?.includesTax && 'tax'].filter(Boolean).join(' & ');
+      const inc = [minimum?.includesServiceCharge && 'service', minimum?.includesTax && 'tax']
+        .filter(Boolean)
+        .join(' & ');
       lines.push({
         key: 'fnb-minimum',
         label: comparable > 0 ? 'F&B minimum shortfall' : 'Food & beverage minimum',
@@ -456,16 +484,27 @@ function tierLabel(rate: Rate): string {
   return 'Flat tier';
 }
 
-function pickTier(c: CapacityTierComponent, s: Scenario, rules: PricingRules): { rate?: Rate; note?: string } {
+function pickTier(
+  c: CapacityTierComponent,
+  s: Scenario,
+  rules: PricingRules,
+): { rate?: Rate; note?: string } {
   const exact = pickRate(c.rates, s, rules);
   if (exact) return { rate: exact };
   // Guest count outside the tiers: use nearest tier that otherwise matches.
-  const loose = c.rates.filter((r) => whenMatches({ ...r.when, guestMin: undefined, guestMax: undefined }, s, rules));
+  const loose = c.rates.filter((r) =>
+    whenMatches({ ...r.when, guestMin: undefined, guestMax: undefined }, s, rules),
+  );
   if (!loose.length) return {};
-  const maxTier = loose.reduce((a, b) => ((a.when?.guestMax ?? Infinity) >= (b.when?.guestMax ?? Infinity) ? a : b));
+  const maxTier = loose.reduce((a, b) =>
+    (a.when?.guestMax ?? Infinity) >= (b.when?.guestMax ?? Infinity) ? a : b,
+  );
   const minTier = loose.reduce((a, b) => ((a.when?.guestMin ?? 0) <= (b.when?.guestMin ?? 0) ? a : b));
   if (maxTier.when?.guestMax != null && s.guests > maxTier.when.guestMax) {
-    return { rate: maxTier, note: `${s.guests} guests exceeds the largest pricing tier (${maxTier.when.guestMax})` };
+    return {
+      rate: maxTier,
+      note: `${s.guests} guests exceeds the largest pricing tier (${maxTier.when.guestMax})`,
+    };
   }
   return { rate: minTier };
 }
@@ -588,7 +627,8 @@ export function estimate(rules: PricingRules | undefined | null, ctx: EstimateCo
   assumptions.push(...base.assumptions);
   if (rules.hoursIncluded != null) {
     const h = ctx.hours ?? rules.hoursIncluded;
-    if (h <= rules.hoursIncluded) assumptions.push(`${rules.hoursIncluded}-hour event included; no overtime assumed.`);
+    if (h <= rules.hoursIncluded)
+      assumptions.push(`${rules.hoursIncluded}-hour event included; no overtime assumed.`);
   }
 
   // Range across unknowns
@@ -601,8 +641,15 @@ export function estimate(rules: PricingRules | undefined | null, ctx: EstimateCo
       : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const days = representatives(dayCands, daySignature(whens));
   const months = representatives(monthCands, monthSignature(rules, whens));
-  const guestCands = [...new Set([ctx.guestMin ?? guests, guests, ctx.guestMax ?? guests].map((g) => Math.max(1, g)))];
-  const pkgCands = ctx.packageId && packages.some((p) => p.id === ctx.packageId) ? [ctx.packageId] : packages.length ? packages.map((p) => p.id) : [undefined];
+  const guestCands = [
+    ...new Set([ctx.guestMin ?? guests, guests, ctx.guestMax ?? guests].map((g) => Math.max(1, g))),
+  ];
+  const pkgCands =
+    ctx.packageId && packages.some((p) => p.id === ctx.packageId)
+      ? [ctx.packageId]
+      : packages.length
+        ? packages.map((p) => p.id)
+        : [undefined];
 
   let low = Infinity;
   let high = -Infinity;
@@ -610,7 +657,14 @@ export function estimate(rules: PricingRules | undefined | null, ctx: EstimateCo
     for (const d of days)
       for (const m of months)
         for (const p of pkgCands) {
-          const sc: Scenario = { guests: g, day: d, month: m, date: baseScenario.date, packageId: p, timeSlot: ctx.timeSlot };
+          const sc: Scenario = {
+            guests: g,
+            day: d,
+            month: m,
+            date: baseScenario.date,
+            packageId: p,
+            timeSlot: ctx.timeSlot,
+          };
           const lo = evaluateScenario(rules, sc, opts('low')).total;
           const hi = evaluateScenario(rules, sc, opts('high')).total;
           if (lo < low) low = lo;
@@ -621,7 +675,10 @@ export function estimate(rules: PricingRules | undefined | null, ctx: EstimateCo
 
   const issues = [...base.issues];
   if (stale) {
-    issues.push({ text: `Pricing is from ${rules.asOf} — more than ${STALE_MONTHS} months old and may be outdated`, severity: 'minor' });
+    issues.push({
+      text: `Pricing is from ${rules.asOf} — more than ${STALE_MONTHS} months old and may be outdated`,
+      severity: 'minor',
+    });
   }
   const confidence: Confidence = issues.some((i) => i.severity === 'major')
     ? 'rough'

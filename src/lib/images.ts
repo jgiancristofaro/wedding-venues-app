@@ -4,16 +4,79 @@
  */
 import type { Photo, VenueFields } from '../domain/types';
 
-type Palette = { skyA: string; skyB: string; ground: string; ground2: string; ink: string; accent: string; glow: string; water: string };
+type Palette = {
+  skyA: string;
+  skyB: string;
+  ground: string;
+  ground2: string;
+  ink: string;
+  accent: string;
+  glow: string;
+  water: string;
+};
 
 const PALETTES: Palette[] = [
-  { skyA: '#E8C7B8', skyB: '#F7EBDF', ground: '#8E9C7D', ground2: '#6F7E60', ink: '#3D3833', accent: '#C98F7E', glow: '#FFE8B8', water: '#A9B9BE' },
-  { skyA: '#C9D8CF', skyB: '#F3F0E7', ground: '#7E8F69', ground2: '#5F7050', ink: '#33372F', accent: '#B9A27A', glow: '#FFF1C9', water: '#9DB4B8' },
-  { skyA: '#F0BE8C', skyB: '#FAE5C9', ground: '#76805A', ground2: '#59633F', ink: '#3A2F27', accent: '#D08A5C', glow: '#FFE2A8', water: '#B7A893' },
-  { skyA: '#D5DAE2', skyB: '#F5F2EC', ground: '#8C9488', ground2: '#6E766A', ink: '#2F3338', accent: '#A7A0B8', glow: '#FFF3D6', water: '#A6B3C2' },
-  { skyA: '#E3CFD6', skyB: '#F8EFEA', ground: '#93977B', ground2: '#727759', ink: '#3B3236', accent: '#C4919E', glow: '#FFE7C4', water: '#B3B5C4' },
+  {
+    skyA: '#E8C7B8',
+    skyB: '#F7EBDF',
+    ground: '#8E9C7D',
+    ground2: '#6F7E60',
+    ink: '#3D3833',
+    accent: '#C98F7E',
+    glow: '#FFE8B8',
+    water: '#A9B9BE',
+  },
+  {
+    skyA: '#C9D8CF',
+    skyB: '#F3F0E7',
+    ground: '#7E8F69',
+    ground2: '#5F7050',
+    ink: '#33372F',
+    accent: '#B9A27A',
+    glow: '#FFF1C9',
+    water: '#9DB4B8',
+  },
+  {
+    skyA: '#F0BE8C',
+    skyB: '#FAE5C9',
+    ground: '#76805A',
+    ground2: '#59633F',
+    ink: '#3A2F27',
+    accent: '#D08A5C',
+    glow: '#FFE2A8',
+    water: '#B7A893',
+  },
+  {
+    skyA: '#D5DAE2',
+    skyB: '#F5F2EC',
+    ground: '#8C9488',
+    ground2: '#6E766A',
+    ink: '#2F3338',
+    accent: '#A7A0B8',
+    glow: '#FFF3D6',
+    water: '#A6B3C2',
+  },
+  {
+    skyA: '#E3CFD6',
+    skyB: '#F8EFEA',
+    ground: '#93977B',
+    ground2: '#727759',
+    ink: '#3B3236',
+    accent: '#C4919E',
+    glow: '#FFE7C4',
+    water: '#B3B5C4',
+  },
 ];
-const NIGHT: Palette = { skyA: '#1F2840', skyB: '#5C5F7E', ground: '#283024', ground2: '#1B2119', ink: '#12141B', accent: '#E9C27D', glow: '#FFD98A', water: '#3C4A66' };
+const NIGHT: Palette = {
+  skyA: '#1F2840',
+  skyB: '#5C5F7E',
+  ground: '#283024',
+  ground2: '#1B2119',
+  ink: '#12141B',
+  accent: '#E9C27D',
+  glow: '#FFD98A',
+  water: '#3C4A66',
+};
 
 function hash(s: string): number {
   let h = 2166136261;
@@ -59,7 +122,16 @@ function trees(p: Palette, r: () => number, y: number, count = 6) {
   return s;
 }
 
-function windowsGrid(x: number, y: number, w: number, h: number, cols: number, rows: number, color: string, op = 0.85) {
+function windowsGrid(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  cols: number,
+  rows: number,
+  color: string,
+  op = 0.85,
+) {
   let s = '';
   const gw = w / cols;
   const gh = h / rows;
@@ -81,14 +153,16 @@ function building(kind: string, p: Palette, r: () => number, night: boolean) {
   if (/ballroom|estate|mansion|manor|club|hotel|hall|inn|library|university|house/.test(k)) {
     const cols = 6;
     let colsSvg = '';
-    for (let i = 0; i < cols; i++) colsSvg += `<rect x="${215 + i * 70}" y="290" width="14" height="140" fill="#F2ECE2"/>`;
+    for (let i = 0; i < cols; i++)
+      colsSvg += `<rect x="${215 + i * 70}" y="290" width="14" height="140" fill="#F2ECE2"/>`;
     return `<rect x="170" y="250" width="460" height="190" fill="#E9E1D3"/><path d="M160 255 L400 170 L640 255Z" fill="#DCD2C1" stroke="${p.ink}" stroke-opacity=".25"/>
 ${windowsGrid(185, 300, 430, 120, 7, 2, win, night ? 0.95 : 0.55)}${colsSvg}<rect x="370" y="360" width="60" height="80" rx="30" fill="${p.ink}" opacity=".7"/>
 <rect x="150" y="436" width="500" height="14" fill="#D8CEBD"/>`;
   }
   if (/greenhouse|conservatory|glass/.test(k)) {
     let ribs = '';
-    for (let i = 0; i <= 8; i++) ribs += `<path d="M${260 + i * 35} 440 L${260 + i * 35} 330" stroke="#fff" stroke-width="3" opacity=".8"/>`;
+    for (let i = 0; i <= 8; i++)
+      ribs += `<path d="M${260 + i * 35} 440 L${260 + i * 35} 330" stroke="#fff" stroke-width="3" opacity=".8"/>`;
     return `<path d="M240 440 L240 330 Q400 160 560 330 L560 440Z" fill="${night ? p.glow : '#DCE8E0'}" opacity=".8" stroke="#fff" stroke-width="5"/>${ribs}
 <path d="M240 330 Q400 160 560 330" fill="none" stroke="#fff" stroke-width="5"/><ellipse cx="400" cy="420" rx="120" ry="30" fill="${p.ground2}" opacity=".6"/>`;
   }
@@ -139,7 +213,8 @@ function sun(p: Palette, r: () => number, night: boolean, id: string) {
   const y = 120 + r() * 80;
   if (night) {
     let stars = '';
-    for (let i = 0; i < 40; i++) stars += `<circle cx="${r() * W}" cy="${r() * 260}" r="${r() * 1.6 + 0.4}" fill="#fff" opacity="${0.4 + r() * 0.6}"/>`;
+    for (let i = 0; i < 40; i++)
+      stars += `<circle cx="${r() * W}" cy="${r() * 260}" r="${r() * 1.6 + 0.4}" fill="#fff" opacity="${0.4 + r() * 0.6}"/>`;
     return stars + `<circle cx="${x}" cy="${y - 40}" r="26" fill="#F6EED9" opacity=".9"/>`;
   }
   return `<circle cx="${x}" cy="${y}" r="160" fill="url(#g${id})"/><circle cx="${x}" cy="${y}" r="42" fill="${p.glow}" opacity=".9"/>`;
@@ -242,11 +317,19 @@ export function generatedPhotos(seedKey: string, fields: VenueFields): Photo[] {
   const r = rng(h);
   const id = (h % 100000).toString(36);
   const photos: Photo[] = [
-    { url: toDataUri(exterior(fields, p, r, false, id + 'a')), caption: 'Exterior (illustration)', source: 'generated' },
+    {
+      url: toDataUri(exterior(fields, p, r, false, id + 'a')),
+      caption: 'Exterior (illustration)',
+      source: 'generated',
+    },
     { url: toDataUri(ceremony(p, r, id + 'b')), caption: 'Ceremony (illustration)', source: 'generated' },
     { url: toDataUri(reception(p)), caption: 'Reception (illustration)', source: 'generated' },
     { url: toDataUri(detail(p, r)), caption: 'Table detail (illustration)', source: 'generated' },
-    { url: toDataUri(exterior(fields, NIGHT, rng(h + 7), true, id + 'd')), caption: 'Evening (illustration)', source: 'generated' },
+    {
+      url: toDataUri(exterior(fields, NIGHT, rng(h + 7), true, id + 'd')),
+      caption: 'Evening (illustration)',
+      source: 'generated',
+    },
   ];
   cache.set(key, photos);
   return photos;

@@ -26,16 +26,27 @@ export default function Discover() {
             Every venue, priced for <em className="text-gold not-italic font-serif italic">your</em> wedding.
           </h1>
           <p className="text-muted mt-4 text-[15px] max-w-2xl">
-            Site fees, minimums, per-person packages, service and tax — normalized into one all-in estimate you can actually compare. Tap any price to see exactly how we got it.
+            Site fees, minimums, per-person packages, service and tax — normalized into one all-in estimate
+            you can actually compare. Tap any price to see exactly how we got it.
           </p>
           {error && (
-            <div className="mt-4 rounded-xl bg-bad/10 text-bad text-sm p-3 flex items-center gap-3" role="alert">
-              We couldn’t reach the venue library ({error}). <button className="underline" onClick={() => void reload()}>Try again</button>
+            <div
+              className="mt-4 rounded-xl bg-bad/10 text-bad text-sm p-3 flex items-center gap-3"
+              role="alert"
+            >
+              We couldn’t reach the venue library ({error}).{' '}
+              <button className="underline" onClick={() => void reload()}>
+                Try again
+              </button>
             </div>
           )}
         </section>
       }
-      emptyState={<Empty title="The library is empty">Ask an admin to publish venues, or add your own in My Venues.</Empty>}
+      emptyState={
+        <Empty title="The library is empty">
+          Ask an admin to publish venues, or add your own in My Venues.
+        </Empty>
+      }
     />
   );
 }

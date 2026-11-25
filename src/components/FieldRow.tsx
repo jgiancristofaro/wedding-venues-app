@@ -25,21 +25,42 @@ export function ProvenanceDot({ p, userEdited }: { p?: FieldProvenance; userEdit
     <span className="relative inline-flex">
       <button
         type="button"
-        className={cx('inline-flex items-center gap-1 rounded-full text-[10px] uppercase tracking-wider px-1.5 h-5 border', userEdited || p.source === 'manual' ? 'border-accent/40 text-accent' : p.source === 'global' ? 'border-line text-muted' : 'border-gold/50 text-gold')}
+        className={cx(
+          'inline-flex items-center gap-1 rounded-full text-[10px] uppercase tracking-wider px-1.5 h-5 border',
+          userEdited || p.source === 'manual'
+            ? 'border-accent/40 text-accent'
+            : p.source === 'global'
+              ? 'border-line text-muted'
+              : 'border-gold/50 text-gold',
+        )}
         aria-label={`Source: ${text}`}
         onClick={() => setOpen(!open)}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onBlur={() => setOpen(false)}
       >
-        {userEdited || p.source === 'manual' ? 'yours' : p.source === 'global' ? 'library' : p.source === 'ai_web' ? 'web' : 'doc'}
+        {userEdited || p.source === 'manual'
+          ? 'yours'
+          : p.source === 'global'
+            ? 'library'
+            : p.source === 'ai_web'
+              ? 'web'
+              : 'doc'}
       </button>
       {open && (
-        <span role="tooltip" className="absolute z-30 left-0 top-6 w-64 rounded-lg bg-ink text-bg text-xs p-2.5 shadow-lift">
+        <span
+          role="tooltip"
+          className="absolute z-30 left-0 top-6 w-64 rounded-lg bg-ink text-bg text-xs p-2.5 shadow-lift"
+        >
           {text}
           {p.snippet && <span className="block mt-1 italic opacity-80">“{p.snippet}”</span>}
           {p.url && (
-            <a href={p.url} target="_blank" rel="noopener noreferrer" className="block mt-1 underline break-all">
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mt-1 underline break-all"
+            >
               {p.url}
             </a>
           )}
@@ -54,10 +75,37 @@ function SpacesEditor({ value, onChange }: { value: Space[]; onChange: (s: Space
     <div className="space-y-2">
       {value.map((s, i) => (
         <div key={i} className="flex gap-2">
-          <input className="input" aria-label="Space name" value={s.name} onChange={(e) => onChange(value.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
-          <input className="input w-24" aria-label="Seated" placeholder="Seated" inputMode="numeric" value={s.seated ?? ''} onChange={(e) => onChange(value.map((x, j) => (j === i ? { ...x, seated: +e.target.value || undefined } : x)))} />
-          <input className="input w-24" aria-label="Standing" placeholder="Standing" inputMode="numeric" value={s.standing ?? ''} onChange={(e) => onChange(value.map((x, j) => (j === i ? { ...x, standing: +e.target.value || undefined } : x)))} />
-          <button className="icon-btn" aria-label="Remove space" onClick={() => onChange(value.filter((_, j) => j !== i))}>
+          <input
+            className="input"
+            aria-label="Space name"
+            value={s.name}
+            onChange={(e) => onChange(value.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
+          />
+          <input
+            className="input w-24"
+            aria-label="Seated"
+            placeholder="Seated"
+            inputMode="numeric"
+            value={s.seated ?? ''}
+            onChange={(e) =>
+              onChange(value.map((x, j) => (j === i ? { ...x, seated: +e.target.value || undefined } : x)))
+            }
+          />
+          <input
+            className="input w-24"
+            aria-label="Standing"
+            placeholder="Standing"
+            inputMode="numeric"
+            value={s.standing ?? ''}
+            onChange={(e) =>
+              onChange(value.map((x, j) => (j === i ? { ...x, standing: +e.target.value || undefined } : x)))
+            }
+          />
+          <button
+            className="icon-btn"
+            aria-label="Remove space"
+            onClick={() => onChange(value.filter((_, j) => j !== i))}
+          >
             <X size={15} />
           </button>
         </div>
@@ -95,8 +143,16 @@ export function FieldRow({
   };
   const commit = () => {
     let v: unknown = draft;
-    if (def.type === 'number') v = draft === '' || draft == null ? undefined : Number(String(draft).replace(/[^\d.]/g, ''));
-    if (def.type === 'text' || def.type === 'longtext' || def.type === 'url' || def.type === 'email' || def.type === 'phone') v = String(draft ?? '').trim() || undefined;
+    if (def.type === 'number')
+      v = draft === '' || draft == null ? undefined : Number(String(draft).replace(/[^\d.]/g, ''));
+    if (
+      def.type === 'text' ||
+      def.type === 'longtext' ||
+      def.type === 'url' ||
+      def.type === 'email' ||
+      def.type === 'phone'
+    )
+      v = String(draft ?? '').trim() || undefined;
     onSave(v);
     setEditing(false);
   };
@@ -107,7 +163,12 @@ export function FieldRow({
   if (editing) {
     if (def.type === 'bool')
       editor = (
-        <select id={id} className="input" value={draft == null ? '' : String(draft)} onChange={(e) => setDraft(e.target.value === '' ? undefined : e.target.value === 'true')}>
+        <select
+          id={id}
+          className="input"
+          value={draft == null ? '' : String(draft)}
+          onChange={(e) => setDraft(e.target.value === '' ? undefined : e.target.value === 'true')}
+        >
           <option value="">Unknown</option>
           <option value="true">Yes</option>
           <option value="false">No</option>
@@ -115,7 +176,12 @@ export function FieldRow({
       );
     else if (def.type === 'select')
       editor = (
-        <select id={id} className="input" value={(draft as string) ?? ''} onChange={(e) => setDraft(e.target.value || undefined)}>
+        <select
+          id={id}
+          className="input"
+          value={(draft as string) ?? ''}
+          onChange={(e) => setDraft(e.target.value || undefined)}
+        >
           <option value="">Unknown</option>
           {def.options!.map((o) => (
             <option key={o.value} value={o.value}>
@@ -125,15 +191,48 @@ export function FieldRow({
         </select>
       );
     else if (def.type === 'tags')
-      editor = <input id={id} className="input" value={((draft as string[]) ?? []).join(', ')} onChange={(e) => setDraft(e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="Comma-separated" />;
-    else if (def.type === 'longtext') editor = <textarea id={id} className="input" rows={3} value={(draft as string) ?? ''} onChange={(e) => setDraft(e.target.value)} />;
-    else if (def.type === 'spaces') editor = <SpacesEditor value={(draft as Space[]) ?? []} onChange={setDraft} />;
+      editor = (
+        <input
+          id={id}
+          className="input"
+          value={((draft as string[]) ?? []).join(', ')}
+          onChange={(e) =>
+            setDraft(
+              e.target.value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean),
+            )
+          }
+          placeholder="Comma-separated"
+        />
+      );
+    else if (def.type === 'longtext')
+      editor = (
+        <textarea
+          id={id}
+          className="input"
+          rows={3}
+          value={(draft as string) ?? ''}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+      );
+    else if (def.type === 'spaces')
+      editor = <SpacesEditor value={(draft as Space[]) ?? []} onChange={setDraft} />;
     else
       editor = (
         <input
           id={id}
           className="input"
-          type={def.type === 'number' ? 'text' : def.type === 'email' ? 'email' : def.type === 'url' ? 'url' : 'text'}
+          type={
+            def.type === 'number'
+              ? 'text'
+              : def.type === 'email'
+                ? 'email'
+                : def.type === 'url'
+                  ? 'url'
+                  : 'text'
+          }
           inputMode={def.type === 'number' ? 'numeric' : undefined}
           value={(draft as string | number) ?? ''}
           onChange={(e) => setDraft(e.target.value)}
@@ -169,15 +268,26 @@ export function FieldRow({
             </div>
           </div>
         ) : def.key === 'website' && value ? (
-          <a href={String(value)} target="_blank" rel="noopener noreferrer" className="text-sm underline break-all">
+          <a
+            href={String(value)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline break-all"
+          >
             {String(value)}
           </a>
         ) : (
-          <p className={cx('text-sm whitespace-pre-wrap', empty && 'text-muted italic')}>{empty ? 'Not known yet' : formatFieldValue(def.key, value)}</p>
+          <p className={cx('text-sm whitespace-pre-wrap', empty && 'text-muted italic')}>
+            {empty ? 'Not known yet' : formatFieldValue(def.key, value)}
+          </p>
         )}
       </div>
       {!editing && (
-        <button className="icon-btn h-9 w-9 opacity-60 group-hover:opacity-100 focus:opacity-100" aria-label={`Edit ${def.label}`} onClick={start}>
+        <button
+          className="icon-btn h-9 w-9 opacity-60 group-hover:opacity-100 focus:opacity-100"
+          aria-label={`Edit ${def.label}`}
+          onClick={start}
+        >
           <Pencil size={14} />
         </button>
       )}

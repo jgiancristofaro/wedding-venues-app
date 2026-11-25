@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildParseUser, envFlag, runWithRepair, validateEnrich, validateExtraction, type CallModel } from './aiCore';
+import {
+  buildParseUser,
+  envFlag,
+  runWithRepair,
+  validateEnrich,
+  validateExtraction,
+  type CallModel,
+} from './aiCore';
 
 const good = {
   fields: [{ field: 'capacitySeated', value: 180, confidence: 0.9, page: 1, snippet: 'seats up to 180' }],
@@ -9,7 +16,12 @@ const good = {
   },
 };
 
-const reply = (obj: unknown) => ({ text: typeof obj === 'string' ? obj : JSON.stringify(obj), model: 'mock-model', inputTokens: 100, outputTokens: 50 });
+const reply = (obj: unknown) => ({
+  text: typeof obj === 'string' ? obj : JSON.stringify(obj),
+  model: 'mock-model',
+  inputTokens: 100,
+  outputTokens: 50,
+});
 
 describe('AI core (mocked model)', () => {
   it('accepts a valid extraction on the first try', async () => {
@@ -38,19 +50,40 @@ describe('AI core (mocked model)', () => {
 
   it('accepts fenced JSON', async () => {
     const call: CallModel = async () => reply('```json\n' + JSON.stringify(good) + '\n```');
-    expect((await runWithRepair(call, { system: 's', user: 'u', schema: {} }, validateExtraction)).ok).toBe(true);
+    expect((await runWithRepair(call, { system: 's', user: 'u', schema: {} }, validateExtraction)).ok).toBe(
+      true,
+    );
   });
 
   it('rejects unknown fields and unexpected properties', () => {
-    expect(validateExtraction({ ...good, fields: [{ field: 'ssn', value: 'x', confidence: 0.5 }] }).ok).toBe(false);
+    expect(validateExtraction({ ...good, fields: [{ field: 'ssn', value: 'x', confidence: 0.5 }] }).ok).toBe(
+      false,
+    );
     expect(validateExtraction({ ...good, extra: 1 }).ok).toBe(false);
-    expect(validateExtraction({ fields: [], pricing: { components: [{ kind: 'mystery', rates: [] }] } }).ok).toBe(false);
+    expect(
+      validateExtraction({ fields: [], pricing: { components: [{ kind: 'mystery', rates: [] }] } }).ok,
+    ).toBe(false);
   });
 
   it('enrichment proposals require public source URLs', () => {
-    expect(validateEnrich({ proposals: [{ field: 'parking', value: 'Valet', confidence: 0.7, sourceUrl: 'https://venue.example/faq' }] }).ok).toBe(true);
-    expect(validateEnrich({ proposals: [{ field: 'parking', value: 'Valet', confidence: 0.7, sourceUrl: 'file:///etc' }] }).ok).toBe(false);
-    expect(validateEnrich({ proposals: [{ field: 'parking', value: 'x', confidence: 0.7, sourceUrl: 'https://a.b' }] }, new Set(['noiseCurfew'])).ok).toBe(false);
+    expect(
+      validateEnrich({
+        proposals: [
+          { field: 'parking', value: 'Valet', confidence: 0.7, sourceUrl: 'https://venue.example/faq' },
+        ],
+      }).ok,
+    ).toBe(true);
+    expect(
+      validateEnrich({
+        proposals: [{ field: 'parking', value: 'Valet', confidence: 0.7, sourceUrl: 'file:///etc' }],
+      }).ok,
+    ).toBe(false);
+    expect(
+      validateEnrich(
+        { proposals: [{ field: 'parking', value: 'x', confidence: 0.7, sourceUrl: 'https://a.b' }] },
+        new Set(['noiseCurfew']),
+      ).ok,
+    ).toBe(false);
   });
 
   it('caps pages sent to the model', () => {

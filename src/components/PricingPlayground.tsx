@@ -1,7 +1,14 @@
 import { RotateCcw } from 'lucide-react';
 import type { WeddingProfile } from '../domain/types';
 import { estimateFor } from '../domain/venues';
-import { DAY_NAMES, MONTH_NAMES, perPersonPackages, type DayOfWeek, type PricingOverrides, type PricingRules } from '../lib/pricing';
+import {
+  DAY_NAMES,
+  MONTH_NAMES,
+  perPersonPackages,
+  type DayOfWeek,
+  type PricingOverrides,
+  type PricingRules,
+} from '../lib/pricing';
 import { money, range } from '../lib/format';
 import { Breakdown, ConfidenceBadge } from './Pricing';
 
@@ -28,7 +35,8 @@ export function PricingPlayground({
   const guests = overrides.guests ?? profile.guestCount;
   const set = (patch: Partial<PricingOverrides>) => {
     const next: PricingOverrides = { ...overrides, ...patch };
-    for (const k of Object.keys(next) as (keyof PricingOverrides)[]) if (next[k] === undefined) delete next[k];
+    for (const k of Object.keys(next) as (keyof PricingOverrides)[])
+      if (next[k] === undefined) delete next[k];
     onOverrides(next);
   };
   const customized = Object.keys(overrides).length > 0;
@@ -59,11 +67,24 @@ export function PricingPlayground({
         <div className="grid grid-cols-2 gap-3">
           <label className="text-sm font-medium col-span-2">
             Specific date
-            <input type="date" className="input mt-1" value={overrides.date ?? ''} onChange={(ev) => set({ date: ev.target.value || undefined, day: undefined, month: undefined })} />
+            <input
+              type="date"
+              className="input mt-1"
+              value={overrides.date ?? ''}
+              onChange={(ev) => set({ date: ev.target.value || undefined, day: undefined, month: undefined })}
+            />
           </label>
           <label className="text-sm font-medium">
             Day
-            <select aria-label="Day" className="input mt-1" value={overrides.day ?? ''} disabled={!!overrides.date} onChange={(ev) => set({ day: ev.target.value === '' ? undefined : (+ev.target.value as DayOfWeek) })}>
+            <select
+              aria-label="Day"
+              className="input mt-1"
+              value={overrides.day ?? ''}
+              disabled={!!overrides.date}
+              onChange={(ev) =>
+                set({ day: ev.target.value === '' ? undefined : (+ev.target.value as DayOfWeek) })
+              }
+            >
               <option value="">From profile</option>
               {DAY_NAMES.map((d, i) => (
                 <option key={d} value={i}>
@@ -74,7 +95,13 @@ export function PricingPlayground({
           </label>
           <label className="text-sm font-medium">
             Month
-            <select aria-label="Month" className="input mt-1" value={overrides.month ?? ''} disabled={!!overrides.date} onChange={(ev) => set({ month: ev.target.value === '' ? undefined : +ev.target.value })}>
+            <select
+              aria-label="Month"
+              className="input mt-1"
+              value={overrides.month ?? ''}
+              disabled={!!overrides.date}
+              onChange={(ev) => set({ month: ev.target.value === '' ? undefined : +ev.target.value })}
+            >
               <option value="">From profile</option>
               {MONTH_NAMES.map((m, i) => (
                 <option key={m} value={i + 1}>
@@ -87,7 +114,12 @@ export function PricingPlayground({
         {pkgs.length > 1 && (
           <label className="text-sm font-medium block">
             Package
-            <select aria-label="Package" className="input mt-1" value={overrides.packageId ?? ''} onChange={(ev) => set({ packageId: ev.target.value || undefined })}>
+            <select
+              aria-label="Package"
+              className="input mt-1"
+              value={overrides.packageId ?? ''}
+              onChange={(ev) => set({ packageId: ev.target.value || undefined })}
+            >
               <option value="">Lowest-priced (default)</option>
               {pkgs.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -99,14 +131,25 @@ export function PricingPlayground({
         )}
         <label className="text-sm font-medium block">
           Event length (hours)
-          <input className="input mt-1 w-28" inputMode="numeric" value={overrides.hours ?? profile.hours ?? ''} onChange={(ev) => set({ hours: +ev.target.value || undefined })} />
+          <input
+            className="input mt-1 w-28"
+            inputMode="numeric"
+            value={overrides.hours ?? profile.hours ?? ''}
+            onChange={(ev) => set({ hours: +ev.target.value || undefined })}
+          />
         </label>
         {(buyout || optAddons.length > 0) && (
           <fieldset className="space-y-1">
             <legend className="text-sm font-medium mb-1">Options</legend>
             {buyout && (
               <label className="flex items-center gap-2 text-sm min-h-[44px]">
-                <input type="checkbox" className="h-5 w-5" checked={!!overrides.buyout} onChange={(ev) => set({ buyout: ev.target.checked || undefined })} /> Full buyout
+                <input
+                  type="checkbox"
+                  className="h-5 w-5"
+                  checked={!!overrides.buyout}
+                  onChange={(ev) => set({ buyout: ev.target.checked || undefined })}
+                />{' '}
+                Full buyout
               </label>
             )}
             {optAddons.map((a) => (

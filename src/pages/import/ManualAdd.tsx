@@ -42,7 +42,13 @@ export function ManualAdd({ target, provenance }: { target: 'mine' | 'global'; p
   const create = async () => {
     if (!user || !name.trim()) return;
     setBusy(true);
-    const f: VenueFields = { ...fields, name: name.trim(), area: fields.area ?? (loc.split(',')[0]?.trim() || undefined), address: fields.address ?? (loc || undefined), photos };
+    const f: VenueFields = {
+      ...fields,
+      name: name.trim(),
+      area: fields.area ?? (loc.split(',')[0]?.trim() || undefined),
+      address: fields.address ?? (loc || undefined),
+      photos,
+    };
     if (loc || f.address) {
       try {
         const r = await backend.geocode(loc || f.address!);
@@ -56,7 +62,16 @@ export function ManualAdd({ target, provenance }: { target: 'mine' | 'global'; p
     }
     try {
       if (target === 'global') {
-        const g: GlobalVenue = { id: crypto.randomUUID(), fields: f, pricing, provenance: provenance!, isSample: false, published: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        const g: GlobalVenue = {
+          id: crypto.randomUUID(),
+          fields: f,
+          pricing,
+          provenance: provenance!,
+          isSample: false,
+          published: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
         await backend.saveGlobal(g);
         await s.reloadGlobals();
         navigate('/admin');
@@ -65,8 +80,11 @@ export function ManualAdd({ target, provenance }: { target: 'mine' | 'global'; p
       const v = blankUserVenue(user.id, f);
       v.pricing = pricing;
       const now = new Date().toISOString();
-      for (const k of Object.keys(f)) if ((f as unknown as Record<string, unknown>)[k] != null) (v.provenance as Record<string, unknown>)[k] = { source: 'manual', detail: 'You entered', at: now };
-      if (f.lat != null) v.provenance.lat = { source: 'geocoder', detail: `Located from “${loc || f.address}”`, at: now };
+      for (const k of Object.keys(f))
+        if ((f as unknown as Record<string, unknown>)[k] != null)
+          (v.provenance as Record<string, unknown>)[k] = { source: 'manual', detail: 'You entered', at: now };
+      if (f.lat != null)
+        v.provenance.lat = { source: 'geocoder', detail: `Located from “${loc || f.address}”`, at: now };
       await s.saveVenue(v);
       s.toast({ text: `Added ${f.name}`, tone: 'success' });
       navigate(`/venue/u/${v.id}`);
@@ -82,18 +100,34 @@ export function ManualAdd({ target, provenance }: { target: 'mine' | 'global'; p
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="text-sm font-medium">
             Venue name
-            <input className="input mt-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. The Linden Barn" data-testid="manual-name" />
+            <input
+              className="input mt-1"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. The Linden Barn"
+              data-testid="manual-name"
+            />
           </label>
           <label className="text-sm font-medium">
             Location
             <span className="relative block mt-1">
               <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-              <input className="input pl-9" value={loc} onChange={(e) => setLoc(e.target.value)} placeholder="Town or full address" />
+              <input
+                className="input pl-9"
+                value={loc}
+                onChange={(e) => setLoc(e.target.value)}
+                placeholder="Town or full address"
+              />
             </span>
           </label>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button className="btn-primary" disabled={!name.trim() || busy} onClick={() => void create()} data-testid="manual-save">
+          <button
+            className="btn-primary"
+            disabled={!name.trim() || busy}
+            onClick={() => void create()}
+            data-testid="manual-save"
+          >
             {busy ? 'Saving…' : 'Add venue'}
           </button>
           <button className="btn-ghost" onClick={() => setFull(!full)} aria-expanded={full}>
@@ -129,7 +163,13 @@ export function ManualAdd({ target, provenance }: { target: 'mine' | 'global'; p
             <div key={sec.key} className="card px-4">
               <h3 className="text-lg pt-3">{sec.title}</h3>
               {FIELD_DEFS.filter((d) => d.section === sec.key && d.key !== 'name').map((d) => (
-                <FieldRow key={d.key} def={d} value={fields[d.key]} editable onSave={(v) => setFields({ ...fields, [d.key]: v })} />
+                <FieldRow
+                  key={d.key}
+                  def={d}
+                  value={fields[d.key]}
+                  editable
+                  onSave={(v) => setFields({ ...fields, [d.key]: v })}
+                />
               ))}
             </div>
           ))}

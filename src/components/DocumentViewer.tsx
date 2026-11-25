@@ -75,23 +75,44 @@ export function DocumentViewer({
   };
 
   return (
-    <div className="rounded-2xl border border-line bg-sunken flex flex-col overflow-hidden" style={{ height }}>
+    <div
+      className="rounded-2xl border border-line bg-sunken flex flex-col overflow-hidden"
+      style={{ height }}
+    >
       <div className="flex items-center gap-1 p-2 border-b border-line bg-surface text-sm">
-        <button className="icon-btn h-9 w-9" onClick={() => go(n - 1)} disabled={n <= 1} aria-label="Previous page">
+        <button
+          className="icon-btn h-9 w-9"
+          onClick={() => go(n - 1)}
+          disabled={n <= 1}
+          aria-label="Previous page"
+        >
           <ChevronLeft size={16} />
         </button>
         <span className="tabular-nums" aria-live="polite">
           Page {n} / {total}
         </span>
-        <button className="icon-btn h-9 w-9" onClick={() => go(n + 1)} disabled={n >= total} aria-label="Next page">
+        <button
+          className="icon-btn h-9 w-9"
+          onClick={() => go(n + 1)}
+          disabled={n >= total}
+          aria-label="Next page"
+        >
           <ChevronRight size={16} />
         </button>
         {isPdf && (
           <span className="ml-auto flex">
-            <button className="icon-btn h-9 w-9" aria-label="Zoom out" onClick={() => setScale(Math.max(0.5, scale - 0.2))}>
+            <button
+              className="icon-btn h-9 w-9"
+              aria-label="Zoom out"
+              onClick={() => setScale(Math.max(0.5, scale - 0.2))}
+            >
               <ZoomOut size={16} />
             </button>
-            <button className="icon-btn h-9 w-9" aria-label="Zoom in" onClick={() => setScale(Math.min(3, scale + 0.2))}>
+            <button
+              className="icon-btn h-9 w-9"
+              aria-label="Zoom in"
+              onClick={() => setScale(Math.min(3, scale + 0.2))}
+            >
               <ZoomIn size={16} />
             </button>
           </span>
@@ -105,7 +126,9 @@ export function DocumentViewer({
         ) : imgUrl ? (
           <img src={imgUrl} alt="Uploaded document" className="max-w-full h-auto object-contain" />
         ) : (
-          <pre className="whitespace-pre-wrap text-sm font-sans bg-surface p-4 rounded-xl w-full">{text?.[n - 1] ?? ''}</pre>
+          <pre className="whitespace-pre-wrap text-sm font-sans bg-surface p-4 rounded-xl w-full">
+            {text?.[n - 1] ?? ''}
+          </pre>
         )}
       </div>
     </div>

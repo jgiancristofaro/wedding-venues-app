@@ -3,7 +3,8 @@ import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cx } from '../lib/format';
 
-const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 /** Accessible dialog: focus trap, Esc to close, restores focus. On phones it renders as a bottom sheet. */
 export function Modal({
@@ -31,7 +32,10 @@ export function Modal({
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     const el = ref.current;
-    const first = el?.querySelector<HTMLElement>('[autofocus]') ?? el?.querySelector<HTMLElement>(`.overflow-y-auto :is(${FOCUSABLE})`) ?? el?.querySelector<HTMLElement>(FOCUSABLE);
+    const first =
+      el?.querySelector<HTMLElement>('[autofocus]') ??
+      el?.querySelector<HTMLElement>(`.overflow-y-auto :is(${FOCUSABLE})`) ??
+      el?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -89,14 +93,26 @@ export function Modal({
           </div>
         )}
         <div className="overflow-y-auto px-5 sm:px-6 pb-5 pt-1">{children}</div>
-        {footer && <div className="border-t border-line px-5 sm:px-6 py-3 flex flex-wrap justify-end gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</div>}
+        {footer && (
+          <div className="border-t border-line px-5 sm:px-6 py-3 flex flex-wrap justify-end gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body,
   );
 }
 
-export function Tooltip({ text, children, side = 'top' }: { text: string; children: ReactNode; side?: 'top' | 'bottom' }) {
+export function Tooltip({
+  text,
+  children,
+  side = 'top',
+}: {
+  text: string;
+  children: ReactNode;
+  side?: 'top' | 'bottom';
+}) {
   return (
     <span className="relative inline-flex group/tt">
       {children}
@@ -118,7 +134,17 @@ export function Skeleton({ className }: { className?: string }) {
   return <div className={cx('skeleton', className)} aria-hidden />;
 }
 
-export function Empty({ icon, title, children, action }: { icon?: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {
+export function Empty({
+  icon,
+  title,
+  children,
+  action,
+}: {
+  icon?: ReactNode;
+  title: string;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
   return (
     <div className="flex flex-col items-center text-center py-16 px-6">
       {icon && <div className="mb-4 text-gold">{icon}</div>}
@@ -129,7 +155,17 @@ export function Empty({ icon, title, children, action }: { icon?: ReactNode; tit
   );
 }
 
-export function Toggle({ checked, onChange, label, id }: { checked: boolean; onChange: (v: boolean) => void; label: string; id?: string }) {
+export function Toggle({
+  checked,
+  onChange,
+  label,
+  id,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  id?: string;
+}) {
   return (
     <label className="inline-flex items-center gap-3 cursor-pointer select-none min-h-[44px]" htmlFor={id}>
       <button
@@ -140,7 +176,12 @@ export function Toggle({ checked, onChange, label, id }: { checked: boolean; onC
         onClick={() => onChange(!checked)}
         className={cx('relative h-6 w-11 rounded-full transition', checked ? 'bg-accent' : 'bg-line')}
       >
-        <span className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-surface shadow transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
+        <span
+          className={cx(
+            'absolute top-0.5 h-5 w-5 rounded-full bg-surface shadow transition-all',
+            checked ? 'left-[22px]' : 'left-0.5',
+          )}
+        />
       </button>
       <span className="text-sm">{label}</span>
     </label>
@@ -159,7 +200,11 @@ export function Segmented<T extends string>({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-full border border-line bg-surface p-1">
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="inline-flex rounded-full border border-line bg-surface p-1"
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -180,7 +225,17 @@ export function Segmented<T extends string>({
   );
 }
 
-export function Field({ label, children, hint, htmlFor }: { label: string; children: ReactNode; hint?: string; htmlFor?: string }) {
+export function Field({
+  label,
+  children,
+  hint,
+  htmlFor,
+}: {
+  label: string;
+  children: ReactNode;
+  hint?: string;
+  htmlFor?: string;
+}) {
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium" htmlFor={htmlFor}>

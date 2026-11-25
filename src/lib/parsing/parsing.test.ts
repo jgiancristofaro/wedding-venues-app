@@ -2,11 +2,24 @@ import { readFileSync } from 'node:fs';
 import * as XLSX from '@e965/xlsx';
 import { describe, expect, it } from 'vitest';
 import { estimate } from '../pricing/engine';
-import type { FnbMinimumComponent, PerPersonComponent, PricingRules, SiteFeeComponent } from '../pricing/types';
+import type {
+  FnbMinimumComponent,
+  PerPersonComponent,
+  PricingRules,
+  SiteFeeComponent,
+} from '../pricing/types';
 import { autoMapColumns, dice, rowToVenue } from './columnMap';
 import { itemsToText, type PdfTextItem } from './pdfText';
 import { readWorkbook } from './spreadsheet';
-import { detectDays, detectGuestRange, detectMonths, parseCapacityText, parseMoney, parsePricingText, parseVenueText } from './textHeuristics';
+import {
+  detectDays,
+  detectGuestRange,
+  detectMonths,
+  parseCapacityText,
+  parseMoney,
+  parsePricingText,
+  parseVenueText,
+} from './textHeuristics';
 
 const fixture = (f: string) => readFileSync(new URL(`../../../tests/fixtures/${f}`, import.meta.url));
 
@@ -58,7 +71,9 @@ describe('text heuristics — free-text pricing', () => {
     expect(kinds(r)).toEqual(['fnb_minimum', 'per_person']);
     const min = r.components.find((c) => c.kind === 'fnb_minimum') as FnbMinimumComponent;
     expect(min.rates[0]).toEqual({ amount: 25000, when: { days: [6] } });
-    expect((r.components.find((c) => c.kind === 'per_person') as PerPersonComponent).rates[0].amount).toBe(150);
+    expect((r.components.find((c) => c.kind === 'per_person') as PerPersonComponent).rates[0].amount).toBe(
+      150,
+    );
   });
   it('site fee + percentages', () => {
     const r = parsePricingText('Site fee $12k. 22% service charge, 8.875% sales tax, 3% administrative fee');
@@ -71,7 +86,9 @@ describe('text heuristics — free-text pricing', () => {
     expect(r.components[0].rates).toHaveLength(2);
   });
   it('buyout, overtime and add-ons', () => {
-    const r = parsePricingText('Saturday buyout: $42,000\nEach additional hour $1,800\nCeremony fee: $2,500\nSecurity required: $65 per hour');
+    const r = parsePricingText(
+      'Saturday buyout: $42,000\nEach additional hour $1,800\nCeremony fee: $2,500\nSecurity required: $65 per hour',
+    );
     expect(kinds(r)).toEqual(['addon', 'addon', 'buyout']);
     expect(r.overtimePerHour).toBe(1800);
     const sec = r.components.find((c) => c.kind === 'addon' && c.name === 'Security');
@@ -122,7 +139,11 @@ describe('PDF booklets (pdf.js + heuristics)', () => {
     expect(buy?.rates.map((r) => r.amount).sort()).toEqual([30000, 42000]);
     const min = x.pricing.components.find((c) => c.kind === 'fnb_minimum') as FnbMinimumComponent;
     expect(min.includesTax && min.includesServiceCharge).toBe(true);
-    expect(x.pricing.components.some((c) => c.kind === 'addon' && c.addonType === 'corkage' && c.unit === 'per_person')).toBe(true);
+    expect(
+      x.pricing.components.some(
+        (c) => c.kind === 'addon' && c.addonType === 'corkage' && c.unit === 'per_person',
+      ),
+    ).toBe(true);
     expect(x.pricing.asOf).toBe('2027-01-01');
     expect(x.fields.capacitySeated?.value).toBe(220);
   });
@@ -133,7 +154,9 @@ describe('PDF booklets (pdf.js + heuristics)', () => {
   });
 
   it('OCR-style text from the scanned booklet still parses', () => {
-    const x = parseVenueText(['Linden Barn\nRental fee $7,500 Saturday\nRental fee $5,000 Friday\nSeats 160 guests\nOutside caterers welcome']);
+    const x = parseVenueText([
+      'Linden Barn\nRental fee $7,500 Saturday\nRental fee $5,000 Friday\nSeats 160 guests\nOutside caterers welcome',
+    ]);
     expect(x.fields.cateringPolicy?.value).toBe('outside_allowed');
     expect(x.pricing.components[0].rates).toHaveLength(2);
   });
@@ -149,7 +172,13 @@ describe('spreadsheet parsing and column mapping', () => {
     const sheets = readWorkbook(XLSX, fixture('messy-venues-a.xlsx'));
     expect(sheets[0].name).toBe('Venues');
     expect(sheets[0].headers.slice(0, 4)).toEqual(['Venue', 'Neighborhood', 'Max Guests', 'Price']);
-    expect(sheets[0].rows.map((r) => r[0])).toEqual(['Copper Kettle Works', 'Mariner Hall', 'The Larkspur Rooms', 'Bellwether Club', 'Weatherby Garden']);
+    expect(sheets[0].rows.map((r) => r[0])).toEqual([
+      'Copper Kettle Works',
+      'Mariner Hall',
+      'The Larkspur Rooms',
+      'Bellwether Club',
+      'Weatherby Garden',
+    ]);
     expect(sheets[0].rowNumbers[0]).toBe(6);
     expect(sheets.map((s) => s.name)).toContain('Rejected');
   });
@@ -167,7 +196,13 @@ describe('spreadsheet parsing and column mapping', () => {
     expect(t('Website')).toBe('website');
     expect(t('Our thoughts')).toBe('notes');
     const r = rowToVenue(s.rows[0], map);
-    expect(r.fields).toMatchObject({ name: 'Copper Kettle Works', capacitySeated: 150, capacityStanding: 200, setting: 'indoor', cateringPolicy: 'in_house' });
+    expect(r.fields).toMatchObject({
+      name: 'Copper Kettle Works',
+      capacitySeated: 150,
+      capacityStanding: 200,
+      setting: 'indoor',
+      cateringPolicy: 'in_house',
+    });
     expect(kinds(r.pricing)).toEqual(['fnb_minimum', 'per_person']);
     expect(r.notes).toEqual(['loved the windows, a bit loud']);
     const callFor = rowToVenue(s.rows[3], map);

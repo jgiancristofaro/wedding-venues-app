@@ -41,7 +41,8 @@ export function describeWhen(w?: When): string {
   const parts: string[] = [];
   if (w.dates?.length) parts.push(w.dates.join(', '));
   if (w.days?.length) parts.push(w.days.map((d) => DAY_SHORT[d]).join('/'));
-  if (w.season) parts.push(w.season === 'off_peak' ? 'Off-peak' : w.season === 'peak' ? 'Peak' : 'Standard season');
+  if (w.season)
+    parts.push(w.season === 'off_peak' ? 'Off-peak' : w.season === 'peak' ? 'Peak' : 'Standard season');
   if (w.months?.length) parts.push(w.months.map((m) => MONTH_NAMES[m - 1].slice(0, 3)).join(', '));
   if (w.timeSlot) parts.push(w.timeSlot);
   if (w.guestMin != null || w.guestMax != null) parts.push(`${w.guestMin ?? 0}–${w.guestMax ?? '∞'} guests`);
@@ -50,7 +51,17 @@ export function describeWhen(w?: When): string {
 
 const numOrU = (s: string) => (s.trim() === '' || !Number.isFinite(+s) ? undefined : +s);
 
-function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange: (r: Rate) => void; onRemove: () => void; perPerson?: boolean }) {
+function RateRow({
+  rate,
+  onChange,
+  onRemove,
+  perPerson,
+}: {
+  rate: Rate;
+  onChange: (r: Rate) => void;
+  onRemove: () => void;
+  perPerson?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const w = rate.when ?? {};
   const setW = (patch: Partial<When>) => {
@@ -67,11 +78,25 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
         <label className="relative">
           <span className="sr-only">Amount</span>
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">$</span>
-          <input className="input w-32 pl-6 tabular-nums" inputMode="decimal" value={rate.amount} onChange={(e) => onChange({ ...rate, amount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} aria-label={`Amount${perPerson ? ' per person' : ''}`} />
+          <input
+            className="input w-32 pl-6 tabular-nums"
+            inputMode="decimal"
+            value={rate.amount}
+            onChange={(e) =>
+              onChange({ ...rate, amount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })
+            }
+            aria-label={`Amount${perPerson ? ' per person' : ''}`}
+          />
         </label>
         {perPerson && <span className="text-xs text-muted">/guest</span>}
-        <button type="button" className="flex-1 text-left text-sm text-muted hover:text-ink inline-flex items-center gap-1 min-h-[44px]" onClick={() => setOpen(!open)} aria-expanded={open}>
-          <ChevronDown size={14} className={cx('transition', open && 'rotate-180')} /> {describeWhen(rate.when)}
+        <button
+          type="button"
+          className="flex-1 text-left text-sm text-muted hover:text-ink inline-flex items-center gap-1 min-h-[44px]"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+        >
+          <ChevronDown size={14} className={cx('transition', open && 'rotate-180')} />{' '}
+          {describeWhen(rate.when)}
         </button>
         <button type="button" className="icon-btn h-9 w-9" onClick={onRemove} aria-label="Remove rate">
           <Trash2 size={15} />
@@ -85,7 +110,17 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
               {DAY_SHORT.map((d, i) => {
                 const on = !!w.days?.includes(i as DayOfWeek);
                 return (
-                  <button key={d} type="button" aria-pressed={on} className={cx('chip h-8 px-2.5', on && 'chip-on')} onClick={() => setW({ days: on ? w.days!.filter((x) => x !== i) : [...(w.days ?? []), i as DayOfWeek] })}>
+                  <button
+                    key={d}
+                    type="button"
+                    aria-pressed={on}
+                    className={cx('chip h-8 px-2.5', on && 'chip-on')}
+                    onClick={() =>
+                      setW({
+                        days: on ? w.days!.filter((x) => x !== i) : [...(w.days ?? []), i as DayOfWeek],
+                      })
+                    }
+                  >
                     {d}
                   </button>
                 );
@@ -95,7 +130,11 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
           <div className="grid sm:grid-cols-3 gap-2">
             <label>
               Season
-              <select className="input mt-1" value={w.season ?? ''} onChange={(e) => setW({ season: (e.target.value || undefined) as When['season'] })}>
+              <select
+                className="input mt-1"
+                value={w.season ?? ''}
+                onChange={(e) => setW({ season: (e.target.value || undefined) as When['season'] })}
+              >
                 <option value="">Any</option>
                 <option value="peak">Peak</option>
                 <option value="standard">Standard</option>
@@ -104,11 +143,21 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
             </label>
             <label>
               Min guests
-              <input className="input mt-1" inputMode="numeric" value={w.guestMin ?? ''} onChange={(e) => setW({ guestMin: numOrU(e.target.value) })} />
+              <input
+                className="input mt-1"
+                inputMode="numeric"
+                value={w.guestMin ?? ''}
+                onChange={(e) => setW({ guestMin: numOrU(e.target.value) })}
+              />
             </label>
             <label>
               Max guests
-              <input className="input mt-1" inputMode="numeric" value={w.guestMax ?? ''} onChange={(e) => setW({ guestMax: numOrU(e.target.value) })} />
+              <input
+                className="input mt-1"
+                inputMode="numeric"
+                value={w.guestMax ?? ''}
+                onChange={(e) => setW({ guestMax: numOrU(e.target.value) })}
+              />
             </label>
           </div>
           <div>
@@ -117,7 +166,17 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
               {MONTH_NAMES.map((m, i) => {
                 const on = !!w.months?.includes(i + 1);
                 return (
-                  <button key={m} type="button" aria-pressed={on} className={cx('chip h-8 px-2.5', on && 'chip-on')} onClick={() => setW({ months: on ? w.months!.filter((x) => x !== i + 1) : [...(w.months ?? []), i + 1] })}>
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={on}
+                    className={cx('chip h-8 px-2.5', on && 'chip-on')}
+                    onClick={() =>
+                      setW({
+                        months: on ? w.months!.filter((x) => x !== i + 1) : [...(w.months ?? []), i + 1],
+                      })
+                    }
+                  >
                     {m.slice(0, 3)}
                   </button>
                 );
@@ -127,11 +186,21 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
           <div className="grid sm:grid-cols-2 gap-2">
             <label>
               Specific dates (YYYY-MM-DD, comma-separated)
-              <input className="input mt-1" value={w.dates?.join(', ') ?? ''} onChange={(e) => setW({ dates: e.target.value.split(/[,\s]+/).filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x)) })} />
+              <input
+                className="input mt-1"
+                value={w.dates?.join(', ') ?? ''}
+                onChange={(e) =>
+                  setW({ dates: e.target.value.split(/[,\s]+/).filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x)) })
+                }
+              />
             </label>
             <label>
               Time slot
-              <select className="input mt-1" value={w.timeSlot ?? ''} onChange={(e) => setW({ timeSlot: e.target.value || undefined })}>
+              <select
+                className="input mt-1"
+                value={w.timeSlot ?? ''}
+                onChange={(e) => setW({ timeSlot: e.target.value || undefined })}
+              >
                 <option value="">Any</option>
                 <option value="evening">Evening</option>
                 <option value="day">Daytime</option>
@@ -144,7 +213,15 @@ function RateRow({ rate, onChange, onRemove, perPerson }: { rate: Rate; onChange
   );
 }
 
-function ComponentCard({ c, onChange, onRemove }: { c: PricingComponent; onChange: (c: PricingComponent) => void; onRemove: () => void }) {
+function ComponentCard({
+  c,
+  onChange,
+  onRemove,
+}: {
+  c: PricingComponent;
+  onChange: (c: PricingComponent) => void;
+  onRemove: () => void;
+}) {
   const setRates = (rates: Rate[]) => onChange({ ...c, rates } as PricingComponent);
   const perPerson = c.kind === 'per_person' || (c.kind === 'addon' && c.unit === 'per_person');
   return (
@@ -153,38 +230,112 @@ function ComponentCard({ c, onChange, onRemove }: { c: PricingComponent; onChang
         <div className="flex-1 space-y-2">
           <div className="label">{componentKindLabel(c.kind)}</div>
           {(c.kind === 'per_person' || c.kind === 'addon') && (
-            <input className="input" aria-label="Name" value={c.name} onChange={(e) => onChange({ ...c, name: e.target.value })} />
+            <input
+              className="input"
+              aria-label="Name"
+              value={c.name}
+              onChange={(e) => onChange({ ...c, name: e.target.value })}
+            />
           )}
           {c.kind !== 'per_person' && c.kind !== 'addon' && (
-            <input className="input" aria-label="Label" placeholder={componentKindLabel(c.kind)} value={c.label ?? ''} onChange={(e) => onChange({ ...c, label: e.target.value || undefined })} />
+            <input
+              className="input"
+              aria-label="Label"
+              placeholder={componentKindLabel(c.kind)}
+              value={c.label ?? ''}
+              onChange={(e) => onChange({ ...c, label: e.target.value || undefined })}
+            />
           )}
         </div>
-        <button type="button" className="icon-btn" onClick={onRemove} aria-label={`Remove ${componentKindLabel(c.kind)}`}>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={onRemove}
+          aria-label={`Remove ${componentKindLabel(c.kind)}`}
+        >
           <Trash2 size={16} />
         </button>
       </div>
       <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
         {c.kind === 'fnb_minimum' && (
           <>
-            <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={!!c.includesServiceCharge} onChange={(e) => onChange({ ...c, includesServiceCharge: e.target.checked })} /> Includes service charge</label>
-            <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={!!c.includesTax} onChange={(e) => onChange({ ...c, includesTax: e.target.checked })} /> Includes tax</label>
+            <label className="inline-flex items-center gap-2 min-h-[44px]">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={!!c.includesServiceCharge}
+                onChange={(e) => onChange({ ...c, includesServiceCharge: e.target.checked })}
+              />{' '}
+              Includes service charge
+            </label>
+            <label className="inline-flex items-center gap-2 min-h-[44px]">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={!!c.includesTax}
+                onChange={(e) => onChange({ ...c, includesTax: e.target.checked })}
+              />{' '}
+              Includes tax
+            </label>
           </>
         )}
         {c.kind === 'per_person' && (
-          <label className="inline-flex items-center gap-2">Guest minimum <input className="input w-20 h-9" inputMode="numeric" value={c.minGuests ?? ''} onChange={(e) => onChange({ ...c, minGuests: numOrU(e.target.value) })} /></label>
+          <label className="inline-flex items-center gap-2">
+            Guest minimum{' '}
+            <input
+              className="input w-20 h-9"
+              inputMode="numeric"
+              value={c.minGuests ?? ''}
+              onChange={(e) => onChange({ ...c, minGuests: numOrU(e.target.value) })}
+            />
+          </label>
         )}
         {(c.kind === 'capacity_tier' || c.kind === 'buyout') && (
-          <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={!!c.includesFnb} onChange={(e) => onChange({ ...c, includesFnb: e.target.checked, category: e.target.checked ? 'fnb' : 'rental' })} /> Includes food & drink</label>
+          <label className="inline-flex items-center gap-2 min-h-[44px]">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={!!c.includesFnb}
+              onChange={(e) =>
+                onChange({
+                  ...c,
+                  includesFnb: e.target.checked,
+                  category: e.target.checked ? 'fnb' : 'rental',
+                })
+              }
+            />{' '}
+            Includes food & drink
+          </label>
         )}
         {c.kind === 'buyout' && (
-          <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={!!c.optional} onChange={(e) => onChange({ ...c, optional: e.target.checked })} /> Optional (only if chosen)</label>
+          <label className="inline-flex items-center gap-2 min-h-[44px]">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={!!c.optional}
+              onChange={(e) => onChange({ ...c, optional: e.target.checked })}
+            />{' '}
+            Optional (only if chosen)
+          </label>
         )}
         {c.kind === 'addon' && (
           <>
-            <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={c.required} onChange={(e) => onChange({ ...c, required: e.target.checked })} /> Required</label>
+            <label className="inline-flex items-center gap-2 min-h-[44px]">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={c.required}
+                onChange={(e) => onChange({ ...c, required: e.target.checked })}
+              />{' '}
+              Required
+            </label>
             <label className="inline-flex items-center gap-2">
               Unit
-              <select className="input h-9 w-36" value={c.unit} onChange={(e) => onChange({ ...c, unit: e.target.value as AddonComponent['unit'] })}>
+              <select
+                className="input h-9 w-36"
+                value={c.unit}
+                onChange={(e) => onChange({ ...c, unit: e.target.value as AddonComponent['unit'] })}
+              >
                 <option value="flat">Flat</option>
                 <option value="per_person">Per guest</option>
                 <option value="per_hour">Per hour</option>
@@ -195,9 +346,24 @@ function ComponentCard({ c, onChange, onRemove }: { c: PricingComponent; onChang
       </div>
       <div className="space-y-2">
         {c.rates.map((r, i) => (
-          <RateRow key={i} rate={r} perPerson={perPerson} onChange={(nr) => setRates(c.rates.map((x, j) => (j === i ? nr : x)))} onRemove={() => setRates(c.rates.filter((_, j) => j !== i))} />
+          <RateRow
+            key={i}
+            rate={r}
+            perPerson={perPerson}
+            onChange={(nr) => setRates(c.rates.map((x, j) => (j === i ? nr : x)))}
+            onRemove={() => setRates(c.rates.filter((_, j) => j !== i))}
+          />
         ))}
-        <button type="button" className="btn-ghost btn-sm" onClick={() => setRates([...c.rates, { amount: 0, when: c.kind === 'capacity_tier' ? { guestMin: 0, guestMax: 0 } : { days: [6] } }])}>
+        <button
+          type="button"
+          className="btn-ghost btn-sm"
+          onClick={() =>
+            setRates([
+              ...c.rates,
+              { amount: 0, when: c.kind === 'capacity_tier' ? { guestMin: 0, guestMax: 0 } : { days: [6] } },
+            ])
+          }
+        >
           <Plus size={14} /> Add a rate {c.kind === 'capacity_tier' ? 'tier' : '(e.g. Saturday, peak season)'}
         </button>
       </div>
@@ -205,14 +371,31 @@ function ComponentCard({ c, onChange, onRemove }: { c: PricingComponent; onChang
   );
 }
 
-export function PricingEditor({ value, onChange }: { value: PricingRules; onChange: (r: PricingRules) => void }) {
+export function PricingEditor({
+  value,
+  onChange,
+}: {
+  value: PricingRules;
+  onChange: (r: PricingRules) => void;
+}) {
   const ch = value.charges ?? {};
   const setCh = (patch: Partial<Charges>) => onChange({ ...value, charges: { ...ch, ...patch } });
-  const pct = (k: 'serviceChargePct' | 'adminFeePct' | 'gratuityPct' | 'taxPct', label: string, placeholder?: string) => (
+  const pct = (
+    k: 'serviceChargePct' | 'adminFeePct' | 'gratuityPct' | 'taxPct',
+    label: string,
+    placeholder?: string,
+  ) => (
     <label className="text-sm">
       {label}
       <span className="relative block mt-1">
-        <input className="input pr-7" inputMode="decimal" value={ch[k] ?? ''} placeholder={placeholder} onChange={(e) => setCh({ [k]: numOrU(e.target.value) })} aria-label={label} />
+        <input
+          className="input pr-7"
+          inputMode="decimal"
+          value={ch[k] ?? ''}
+          placeholder={placeholder}
+          onChange={(e) => setCh({ [k]: numOrU(e.target.value) })}
+          aria-label={label}
+        />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm">%</span>
       </span>
     </label>
@@ -224,14 +407,23 @@ export function PricingEditor({ value, onChange }: { value: PricingRules; onChan
           <ComponentCard
             key={c.id}
             c={c}
-            onChange={(nc) => onChange({ ...value, components: value.components.map((x, j) => (j === i ? nc : x)) })}
+            onChange={(nc) =>
+              onChange({ ...value, components: value.components.map((x, j) => (j === i ? nc : x)) })
+            }
             onRemove={() => onChange({ ...value, components: value.components.filter((_, j) => j !== i) })}
           />
         ))}
-        {!value.components.length && <p className="text-sm text-muted">No pricing rules yet. Add how this venue quotes prices:</p>}
+        {!value.components.length && (
+          <p className="text-sm text-muted">No pricing rules yet. Add how this venue quotes prices:</p>
+        )}
         <div className="flex flex-wrap gap-2">
           {KINDS.map((k) => (
-            <button key={k} type="button" className="chip" onClick={() => onChange({ ...value, components: [...value.components, blank(k)] })}>
+            <button
+              key={k}
+              type="button"
+              className="chip"
+              onClick={() => onChange({ ...value, components: [...value.components, blank(k)] })}
+            >
               <Plus size={14} /> {componentKindLabel(k)}
             </button>
           ))}
@@ -248,29 +440,64 @@ export function PricingEditor({ value, onChange }: { value: PricingRules; onChan
         <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-sm">
           <label className="inline-flex items-center gap-2">
             Service charge applies to
-            <select className="input h-9 w-40" value={ch.serviceChargeBase ?? 'fnb'} onChange={(e) => setCh({ serviceChargeBase: e.target.value as Charges['serviceChargeBase'] })}>
+            <select
+              className="input h-9 w-40"
+              value={ch.serviceChargeBase ?? 'fnb'}
+              onChange={(e) => setCh({ serviceChargeBase: e.target.value as Charges['serviceChargeBase'] })}
+            >
               <option value="fnb">Food & beverage</option>
               <option value="fnb_rental">F&B + rental</option>
               <option value="all">Everything</option>
             </select>
           </label>
-          <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={ch.taxOnServiceCharge ?? true} onChange={(e) => setCh({ taxOnServiceCharge: e.target.checked })} /> Tax applies to service charge</label>
-          <label className="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" className="h-4 w-4" checked={!!ch.noServiceCharge} onChange={(e) => setCh({ noServiceCharge: e.target.checked })} /> Venue has no service charge</label>
+          <label className="inline-flex items-center gap-2 min-h-[44px]">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={ch.taxOnServiceCharge ?? true}
+              onChange={(e) => setCh({ taxOnServiceCharge: e.target.checked })}
+            />{' '}
+            Tax applies to service charge
+          </label>
+          <label className="inline-flex items-center gap-2 min-h-[44px]">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={!!ch.noServiceCharge}
+              onChange={(e) => setCh({ noServiceCharge: e.target.checked })}
+            />{' '}
+            Venue has no service charge
+          </label>
         </div>
       </fieldset>
       <fieldset className="card p-4 grid sm:grid-cols-4 gap-3 text-sm">
         <legend className="label px-1">Timing & seasons</legend>
         <label>
           Hours included
-          <input className="input mt-1" inputMode="numeric" value={value.hoursIncluded ?? ''} onChange={(e) => onChange({ ...value, hoursIncluded: numOrU(e.target.value) })} />
+          <input
+            className="input mt-1"
+            inputMode="numeric"
+            value={value.hoursIncluded ?? ''}
+            onChange={(e) => onChange({ ...value, hoursIncluded: numOrU(e.target.value) })}
+          />
         </label>
         <label>
           Overtime per hour ($)
-          <input className="input mt-1" inputMode="numeric" value={value.overtimePerHour ?? ''} onChange={(e) => onChange({ ...value, overtimePerHour: numOrU(e.target.value) })} />
+          <input
+            className="input mt-1"
+            inputMode="numeric"
+            value={value.overtimePerHour ?? ''}
+            onChange={(e) => onChange({ ...value, overtimePerHour: numOrU(e.target.value) })}
+          />
         </label>
         <label>
           Pricing as of
-          <input className="input mt-1" type="date" value={value.asOf ?? ''} onChange={(e) => onChange({ ...value, asOf: e.target.value || undefined })} />
+          <input
+            className="input mt-1"
+            type="date"
+            value={value.asOf ?? ''}
+            onChange={(e) => onChange({ ...value, asOf: e.target.value || undefined })}
+          />
         </label>
         <label>
           Peak months (e.g. 5-10)
@@ -284,8 +511,13 @@ export function PricingEditor({ value, onChange }: { value: PricingRules; onChan
           />
         </label>
       </fieldset>
-      <p className="text-xs text-muted">Tip: rates without conditions are the default. Add a Saturday or peak-season rate and the most specific matching rate wins.</p>
-      {value.components.some((c) => c.rates.some((r) => !r.amount)) && <p className="text-xs text-warn">Some rates are {money(0)} — fill them in or remove them.</p>}
+      <p className="text-xs text-muted">
+        Tip: rates without conditions are the default. Add a Saturday or peak-season rate and the most
+        specific matching rate wins.
+      </p>
+      {value.components.some((c) => c.rates.some((r) => !r.amount)) && (
+        <p className="text-xs text-warn">Some rates are {money(0)} — fill them in or remove them.</p>
+      )}
     </div>
   );
 }

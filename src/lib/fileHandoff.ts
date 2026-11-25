@@ -17,6 +17,10 @@ export type FileKind = 'sheet' | 'doc' | 'unsupported';
 export function classifyFile(f: File): FileKind {
   const n = f.name.toLowerCase();
   if (/\.(xlsx|xls|csv|tsv|ods)$/.test(n) || /spreadsheet|excel|csv/.test(f.type)) return 'sheet';
-  if (/\.(pdf|png|jpe?g|webp|gif|heic|docx|txt)$/.test(n) || /pdf|image\/|wordprocessingml|text\/plain/.test(f.type)) return 'doc';
+  if (
+    /\.(pdf|png|jpe?g|webp|gif|heic|docx|txt)$/.test(n) ||
+    /pdf|image\/|wordprocessingml|text\/plain/.test(f.type)
+  )
+    return 'doc';
   return 'unsupported';
 }

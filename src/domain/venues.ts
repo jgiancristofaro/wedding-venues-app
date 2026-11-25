@@ -1,16 +1,50 @@
-import { estimate, type Estimate, type EstimateContext, type PricingOverrides, type PricingRules } from '../lib/pricing';
+import {
+  estimate,
+  type Estimate,
+  type EstimateContext,
+  type PricingOverrides,
+  type PricingRules,
+} from '../lib/pricing';
 import { newId } from '../lib/pricing/sanitize';
 import { milesBetween } from '../lib/geo';
 import { FIELD_DEFS, isEmptyValue } from './fields';
-import type { FieldKey, FieldProvenance, GlobalVenue, UserVenue, VenueFields, VenueView, WeddingProfile } from './types';
+import type {
+  FieldKey,
+  FieldProvenance,
+  GlobalVenue,
+  UserVenue,
+  VenueFields,
+  VenueView,
+  WeddingProfile,
+} from './types';
 
 export const refOf = (kind: 'global' | 'mine', id: string) => `${kind === 'global' ? 'g' : 'u'}:${id}`;
 
 export function globalView(g: GlobalVenue, mine?: UserVenue): VenueView {
-  return { ref: refOf('global', g.id), kind: 'global', id: g.id, fields: g.fields, pricing: g.pricing, global: g, mine, isSample: g.isSample, pricingAsOf: g.pricing.asOf ?? g.provenance.pricingAsOf };
+  return {
+    ref: refOf('global', g.id),
+    kind: 'global',
+    id: g.id,
+    fields: g.fields,
+    pricing: g.pricing,
+    global: g,
+    mine,
+    isSample: g.isSample,
+    pricingAsOf: g.pricing.asOf ?? g.provenance.pricingAsOf,
+  };
 }
 export function mineView(m: UserVenue, g?: GlobalVenue): VenueView {
-  return { ref: refOf('mine', m.id), kind: 'mine', id: m.id, fields: m.fields, pricing: m.pricing, global: g, mine: m, isSample: !!g?.isSample, pricingAsOf: m.pricing.asOf };
+  return {
+    ref: refOf('mine', m.id),
+    kind: 'mine',
+    id: m.id,
+    fields: m.fields,
+    pricing: m.pricing,
+    global: g,
+    mine: m,
+    isSample: !!g?.isSample,
+    pricingAsOf: m.pricing.asOf,
+  };
 }
 
 export function contextFromProfile(p: WeddingProfile, o?: PricingOverrides): EstimateContext {
@@ -30,7 +64,12 @@ export function contextFromProfile(p: WeddingProfile, o?: PricingOverrides): Est
 }
 
 const cache = new Map<string, Estimate>();
-export function estimateFor(pricing: PricingRules, profile: WeddingProfile, overrides?: PricingOverrides, key?: string): Estimate {
+export function estimateFor(
+  pricing: PricingRules,
+  profile: WeddingProfile,
+  overrides?: PricingOverrides,
+  key?: string,
+): Estimate {
   const k = key ? `${key}|${JSON.stringify(profile)}|${JSON.stringify(overrides ?? {})}` : '';
   if (k) {
     const hit = cache.get(k);
@@ -66,14 +105,28 @@ const now = () => new Date().toISOString();
 export function copyGlobalToMine(g: GlobalVenue, ownerId: string): UserVenue {
   const provenance: UserVenue['provenance'] = {};
   for (const f of FIELD_DEFS) {
-    if (!isEmptyValue(g.fields[f.key])) provenance[f.key] = { source: 'global', detail: g.isSample ? 'Global library (sample data)' : 'Global library', url: g.provenance.sourceUrl, at: g.updatedAt };
+    if (!isEmptyValue(g.fields[f.key]))
+      provenance[f.key] = {
+        source: 'global',
+        detail: g.isSample ? 'Global library (sample data)' : 'Global library',
+        url: g.provenance.sourceUrl,
+        at: g.updatedAt,
+      };
   }
-  provenance.pricing = { source: 'global', detail: `Global library · pricing as of ${g.pricing.asOf ?? 'unknown'}`, at: g.updatedAt };
+  provenance.pricing = {
+    source: 'global',
+    detail: `Global library · pricing as of ${g.pricing.asOf ?? 'unknown'}`,
+    at: g.updatedAt,
+  };
   return {
     id: crypto.randomUUID?.() ?? newId('uv'),
     ownerId,
     globalId: g.id,
-    globalSnapshot: { fields: structuredClone(g.fields), pricing: structuredClone(g.pricing), updatedAt: g.updatedAt },
+    globalSnapshot: {
+      fields: structuredClone(g.fields),
+      pricing: structuredClone(g.pricing),
+      updatedAt: g.updatedAt,
+    },
     fields: structuredClone(g.fields),
     pricing: structuredClone(g.pricing),
     provenance,
@@ -104,24 +157,49 @@ export function globalChanges(m: UserVenue, g: GlobalVenue): GlobalChange[] {
   for (const f of FIELD_DEFS) {
     if (same(snap.fields[f.key], g.fields[f.key])) continue;
     if (same(m.fields[f.key], g.fields[f.key])) continue;
-    out.push({ key: f.key, label: f.label, from: m.fields[f.key], to: g.fields[f.key], userEdited: !same(m.fields[f.key], snap.fields[f.key]) });
+    out.push({
+      key: f.key,
+      label: f.label,
+      from: m.fields[f.key],
+      to: g.fields[f.key],
+      userEdited: !same(m.fields[f.key], snap.fields[f.key]),
+    });
   }
   if (!same(snap.pricing, g.pricing) && !same(m.pricing, g.pricing)) {
-    out.push({ key: 'pricing', label: 'Pricing rules', from: m.pricing, to: g.pricing, userEdited: !same(m.pricing, snap.pricing) });
+    out.push({
+      key: 'pricing',
+      label: 'Pricing rules',
+      from: m.pricing,
+      to: g.pricing,
+      userEdited: !same(m.pricing, snap.pricing),
+    });
   }
   return out;
 }
 
 export function acceptGlobalChange(m: UserVenue, g: GlobalVenue, key: FieldKey | 'pricing'): UserVenue {
-  const snap = m.globalSnapshot ?? { fields: { name: g.fields.name }, pricing: { components: [] }, updatedAt: g.updatedAt };
+  const snap = m.globalSnapshot ?? {
+    fields: { name: g.fields.name },
+    pricing: { components: [] },
+    updatedAt: g.updatedAt,
+  };
   const prov: FieldProvenance = { source: 'global', detail: 'Global library (accepted update)', at: now() };
   if (key === 'pricing') {
-    return { ...m, pricing: structuredClone(g.pricing), globalSnapshot: { ...snap, pricing: structuredClone(g.pricing), updatedAt: g.updatedAt }, provenance: { ...m.provenance, pricing: prov } };
+    return {
+      ...m,
+      pricing: structuredClone(g.pricing),
+      globalSnapshot: { ...snap, pricing: structuredClone(g.pricing), updatedAt: g.updatedAt },
+      provenance: { ...m.provenance, pricing: prov },
+    };
   }
   return {
     ...m,
     fields: { ...m.fields, [key]: structuredClone(g.fields[key]) },
-    globalSnapshot: { ...snap, fields: { ...snap.fields, [key]: structuredClone(g.fields[key]) }, updatedAt: g.updatedAt },
+    globalSnapshot: {
+      ...snap,
+      fields: { ...snap.fields, [key]: structuredClone(g.fields[key]) },
+      updatedAt: g.updatedAt,
+    },
     provenance: { ...m.provenance, [key]: prov },
   };
 }
@@ -129,7 +207,10 @@ export function acceptGlobalChange(m: UserVenue, g: GlobalVenue, key: FieldKey |
 export function dismissGlobalChange(m: UserVenue, g: GlobalVenue, key: FieldKey | 'pricing'): UserVenue {
   const snap = m.globalSnapshot!;
   if (key === 'pricing') return { ...m, globalSnapshot: { ...snap, pricing: structuredClone(g.pricing) } };
-  return { ...m, globalSnapshot: { ...snap, fields: { ...snap.fields, [key]: structuredClone(g.fields[key]) } } };
+  return {
+    ...m,
+    globalSnapshot: { ...snap, fields: { ...snap.fields, [key]: structuredClone(g.fields[key]) } },
+  };
 }
 
 /** Did the user change this field from the global value? */

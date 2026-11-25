@@ -29,9 +29,7 @@ export interface Toast {
 }
 
 export type PendingAction =
-  | { type: 'heart'; globalId: string }
-  | { type: 'navigate'; to: string }
-  | { type: 'compare-save' };
+  { type: 'heart'; globalId: string } | { type: 'navigate'; to: string } | { type: 'compare-save' };
 
 const PENDING_KEY = 'vellum:pending';
 const COMPARE_KEY = 'vellum:compare';
@@ -152,7 +150,8 @@ export const useApp = create<State>((set, get) => ({
       const prev = get().user;
       set({ user: u });
       if (u && u.id !== prev?.id) void get().afterSignIn();
-      if (!u && prev) set({ mine: [], notes: [], documents: [], jobs: [], presets: [], compareSets: [], isAdmin: false });
+      if (!u && prev)
+        set({ mine: [], notes: [], documents: [], jobs: [], presets: [], compareSets: [], isAdmin: false });
     });
     void backend.flags().then((flags) => set({ flags }));
     const [user] = await Promise.all([backend.getUser().catch(() => null), get().reloadGlobals()]);
@@ -214,7 +213,8 @@ export const useApp = create<State>((set, get) => ({
     if (raw) {
       const action = JSON.parse(raw) as PendingAction;
       if (action.type === 'heart') await get().heartGlobal(action.globalId);
-      if (action.type === 'navigate') window.dispatchEvent(new CustomEvent('vellum:navigate', { detail: action.to }));
+      if (action.type === 'navigate')
+        window.dispatchEvent(new CustomEvent('vellum:navigate', { detail: action.to }));
     }
   },
 
@@ -235,7 +235,8 @@ export const useApp = create<State>((set, get) => ({
   },
 
   async heartGlobal(globalId) {
-    if (!get().requireAuth('Sign in to save venues to your private library.', { type: 'heart', globalId })) return null;
+    if (!get().requireAuth('Sign in to save venues to your private library.', { type: 'heart', globalId }))
+      return null;
     const existing = get().mine.find((m) => m.globalId === globalId);
     if (existing) return existing;
     const g = get().globals.find((x) => x.id === globalId);
@@ -249,17 +250,32 @@ export const useApp = create<State>((set, get) => ({
       get().handleError(e, 'Could not save');
       return null;
     }
-    get().toast({ text: `Saved ${g.fields.name} to My Venues`, tone: 'success', action: { label: 'Undo', run: () => void get().unsave(copy.id, { undo: true }) } }, 6000);
+    get().toast(
+      {
+        text: `Saved ${g.fields.name} to My Venues`,
+        tone: 'success',
+        action: { label: 'Undo', run: () => void get().unsave(copy.id, { undo: true }) },
+      },
+      6000,
+    );
     return copy;
   },
 
   async unsave(venueId, opts) {
     const v = get().mine.find((m) => m.id === venueId);
     if (!v) return;
-    set({ mine: get().mine.filter((m) => m.id !== venueId), notes: get().notes.filter((n) => n.venueId !== venueId), compare: get().compare.filter((r) => r !== `u:${venueId}`) });
+    set({
+      mine: get().mine.filter((m) => m.id !== venueId),
+      notes: get().notes.filter((n) => n.venueId !== venueId),
+      compare: get().compare.filter((r) => r !== `u:${venueId}`),
+    });
     try {
       await backend.deleteMine(venueId);
-      if (!opts?.undo) get().toast({ text: `Removed ${v.fields.name}`, action: { label: 'Undo', run: () => void get().saveVenue(v) } }, 6000);
+      if (!opts?.undo)
+        get().toast(
+          { text: `Removed ${v.fields.name}`, action: { label: 'Undo', run: () => void get().saveVenue(v) } },
+          6000,
+        );
     } catch (e) {
       set({ mine: [...get().mine, v] });
       get().handleError(e);
@@ -288,14 +304,22 @@ export const useApp = create<State>((set, get) => ({
     const v = get().mine.find((m) => m.id === id);
     if (!v) return;
     const provenance = { ...v.provenance };
-    for (const k of Object.keys(patch) as FieldKey[]) provenance[k] = { source: 'manual', detail: 'You entered', ...prov, at: iso() };
+    for (const k of Object.keys(patch) as FieldKey[])
+      provenance[k] = { source: 'manual', detail: 'You entered', ...prov, at: iso() };
     await get().saveVenue({ ...v, fields: { ...v.fields, ...patch }, provenance });
   },
 
   async updatePricing(id, pricing, prov) {
     const v = get().mine.find((m) => m.id === id);
     if (!v) return;
-    await get().saveVenue({ ...v, pricing, provenance: { ...v.provenance, pricing: { source: 'manual', detail: 'You edited', ...prov, at: iso() } } });
+    await get().saveVenue({
+      ...v,
+      pricing,
+      provenance: {
+        ...v.provenance,
+        pricing: { source: 'manual', detail: 'You edited', ...prov, at: iso() },
+      },
+    });
   },
 
   async patchVenue(id, patch) {
@@ -316,12 +340,24 @@ export const useApp = create<State>((set, get) => ({
     const v = get().mine.find((m) => m.id === id);
     if (!v || v.shortlistRank != null) return;
     const max = Math.max(0, ...get().mine.map((m) => m.shortlistRank ?? 0));
-    await get().saveVenue({ ...v, shortlistRank: max + 1, status: v.status === 'researching' || v.status === 'contacted' || v.status === 'toured' ? 'shortlisted' : v.status });
+    await get().saveVenue({
+      ...v,
+      shortlistRank: max + 1,
+      status:
+        v.status === 'researching' || v.status === 'contacted' || v.status === 'toured'
+          ? 'shortlisted'
+          : v.status,
+    });
     get().toast({ text: `Added ${v.fields.name} to your shortlist`, tone: 'success' });
   },
   async removeFromShortlist(id) {
     const v = get().mine.find((m) => m.id === id);
-    if (v) await get().saveVenue({ ...v, shortlistRank: null, status: v.status === 'shortlisted' ? 'researching' : v.status });
+    if (v)
+      await get().saveVenue({
+        ...v,
+        shortlistRank: null,
+        status: v.status === 'shortlisted' ? 'researching' : v.status,
+      });
   },
 
   async reorderShortlist(ids) {
@@ -375,7 +411,13 @@ export const useApp = create<State>((set, get) => ({
   },
   async saveCompareSet(name) {
     if (!get().requireAuth('Sign in to save comparisons.', { type: 'navigate', to: '/compare' })) return;
-    const s: CompareSet = { id: crypto.randomUUID(), ownerId: get().user!.id, name, venueRefs: get().compare, createdAt: iso() };
+    const s: CompareSet = {
+      id: crypto.randomUUID(),
+      ownerId: get().user!.id,
+      name,
+      venueRefs: get().compare,
+      createdAt: iso(),
+    };
     set({ compareSets: [...get().compareSets, s] });
     await backend.saveCompareSet(s).catch((e) => get().handleError(e));
     get().toast({ text: `Saved comparison “${name}”`, tone: 'success' });
@@ -420,7 +462,12 @@ export const useApp = create<State>((set, get) => ({
       set({ signIn: { open: true, reason: e.message } });
       return;
     }
-    const msg = e instanceof BackendError ? e.message : e instanceof Error && e.message ? `${fallback}: ${e.message}` : fallback;
+    const msg =
+      e instanceof BackendError
+        ? e.message
+        : e instanceof Error && e.message
+          ? `${fallback}: ${e.message}`
+          : fallback;
     get().toast({ text: msg, tone: 'error' }, 7000);
   },
   setTheme(theme) {

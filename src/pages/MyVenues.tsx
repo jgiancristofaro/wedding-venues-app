@@ -23,12 +23,18 @@ export default function MyVenues() {
         icon={<Heart size={40} />}
         title="Your private venue library"
         action={
-          <button className="btn-primary" onClick={() => requireAuth('Sign in to start your private venue library.', { type: 'navigate', to: '/mine' })}>
+          <button
+            className="btn-primary"
+            onClick={() =>
+              requireAuth('Sign in to start your private venue library.', { type: 'navigate', to: '/mine' })
+            }
+          >
             Sign in to get started
           </button>
         }
       >
-        Save venues from Discover, import your spreadsheet, or drop in a brochure. Everything stays private to you and syncs across devices.
+        Save venues from Discover, import your spreadsheet, or drop in a brochure. Everything stays private to
+        you and syncs across devices.
       </Empty>
     );
   }
@@ -59,12 +65,17 @@ export default function MyVenues() {
           title="Nothing saved yet"
           action={
             <>
-              <Link to="/" className="btn-primary">Browse Discover</Link>
-              <Link to="/import" className="btn-secondary">Import a spreadsheet or brochure</Link>
+              <Link to="/" className="btn-primary">
+                Browse Discover
+              </Link>
+              <Link to="/import" className="btn-secondary">
+                Import a spreadsheet or brochure
+              </Link>
             </>
           }
         >
-          Tap the heart on any venue to copy it here. Your edits and notes are yours — the library never overwrites them.
+          Tap the heart on any venue to copy it here. Your edits and notes are yours — the library never
+          overwrites them.
         </Empty>
       }
     />

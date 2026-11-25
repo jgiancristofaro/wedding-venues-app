@@ -125,7 +125,12 @@ function sanitizeComponent(v: unknown): PricingComponent | null {
       };
     }
     case 'capacity_tier':
-      return { kind: 'capacity_tier', ...base, ...(category ? { category } : {}), includesFnb: o.includesFnb === true };
+      return {
+        kind: 'capacity_tier',
+        ...base,
+        ...(category ? { category } : {}),
+        includesFnb: o.includesFnb === true,
+      };
     case 'buyout': {
       const rep = Array.isArray(o.replaces)
         ? o.replaces.filter((x): x is 'site_fee' | 'fnb_minimum' => x === 'site_fee' || x === 'fnb_minimum')
@@ -141,7 +146,17 @@ function sanitizeComponent(v: unknown): PricingComponent | null {
     }
     case 'addon': {
       const unit = o.unit === 'per_person' || o.unit === 'per_hour' ? o.unit : 'flat';
-      const types = ['ceremony', 'coordinator', 'security', 'cleaning', 'cake_cutting', 'corkage', 'bar', 'rentals', 'other'];
+      const types = [
+        'ceremony',
+        'coordinator',
+        'security',
+        'cleaning',
+        'cake_cutting',
+        'corkage',
+        'bar',
+        'rentals',
+        'other',
+      ];
       return {
         kind: 'addon',
         ...base,

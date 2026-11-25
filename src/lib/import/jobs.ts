@@ -42,7 +42,13 @@ export function runSpreadsheetImport(opts: {
     total: opts.rows.filter((r) => r.action !== 'skip').length,
     processed: 0,
     errors: [],
-    results: { created: 0, linked: 0, updated: 0, skipped: opts.rows.filter((r) => r.action === 'skip').length, venueIds: [] },
+    results: {
+      created: 0,
+      linked: 0,
+      updated: 0,
+      skipped: opts.rows.filter((r) => r.action === 'skip').length,
+      venueIds: [],
+    },
     createdAt: iso(),
     updatedAt: iso(),
   };
@@ -58,7 +64,12 @@ export function runSpreadsheetImport(opts: {
     for (const r of opts.rows) {
       if (r.action === 'skip') continue;
       try {
-        const prov = { source: 'spreadsheet' as const, detail: `${opts.label} · ${opts.sheet} row ${r.rowNumber}`, confidence: r.confidence, at: iso() };
+        const prov = {
+          source: 'spreadsheet' as const,
+          detail: `${opts.label} · ${opts.sheet} row ${r.rowNumber}`,
+          confidence: r.confidence,
+          at: iso(),
+        };
         if (opts.target === 'global') {
           const g: GlobalVenue = {
             id: '',
@@ -100,7 +111,13 @@ export function runSpreadsheetImport(opts: {
               }
             }
             const pricing = m.pricing.components.length ? m.pricing : r.pricing;
-            await s.saveVenue({ ...m, fields, pricing, provenance, tags: [...new Set([...m.tags, ...r.tags])] });
+            await s.saveVenue({
+              ...m,
+              fields,
+              pricing,
+              provenance,
+              tags: [...new Set([...m.tags, ...r.tags])],
+            });
             await addNotes(m.id, r.notes);
             job.results.updated++;
             job.results.venueIds.push(m.id);
@@ -111,7 +128,8 @@ export function runSpreadsheetImport(opts: {
           for (const k of Object.keys(r.fields)) (v.provenance as Record<string, unknown>)[k] = prov;
           if (r.pricing.components.length) v.provenance.pricing = prov;
           v.status = r.status ?? 'researching';
-          if (v.status === 'shortlisted') v.shortlistRank = Math.max(0, ...useApp.getState().mine.map((x) => x.shortlistRank ?? 0)) + 1;
+          if (v.status === 'shortlisted')
+            v.shortlistRank = Math.max(0, ...useApp.getState().mine.map((x) => x.shortlistRank ?? 0)) + 1;
           v.rating = r.rating;
           v.tags = r.tags;
           await useApp.getState().saveVenue(v);
@@ -127,14 +145,24 @@ export function runSpreadsheetImport(opts: {
       update({ progress: job.processed / Math.max(1, job.total) });
       await new Promise((res) => setTimeout(res, 0));
     }
-    update({ status: job.errors.length && !job.results.venueIds.length && opts.target !== 'global' ? 'error' : 'done', progress: 1 });
+    update({
+      status:
+        job.errors.length && !job.results.venueIds.length && opts.target !== 'global' ? 'error' : 'done',
+      progress: 1,
+    });
     void backend.saveJob(job).catch(() => undefined);
     const st = useApp.getState();
     st.toast(
       {
         text: `Import finished: ${job.results.created} created, ${job.results.linked} linked to the library, ${job.results.updated} updated${job.errors.length ? `, ${job.errors.length} errors` : ''}.`,
         tone: job.errors.length ? 'error' : 'success',
-        action: opts.target === 'mine' ? { label: 'View', run: () => window.dispatchEvent(new CustomEvent('vellum:navigate', { detail: '/mine' })) } : undefined,
+        action:
+          opts.target === 'mine'
+            ? {
+                label: 'View',
+                run: () => window.dispatchEvent(new CustomEvent('vellum:navigate', { detail: '/mine' })),
+              }
+            : undefined,
       },
       9000,
     );
@@ -147,13 +175,29 @@ export function runSpreadsheetImport(opts: {
         const r = await backend.geocode(q);
         const cur = useApp.getState().mine.find((m) => m.id === v.id);
         if (r && cur && cur.fields.lat == null) {
-          await useApp.getState().saveVenue({ ...cur, fields: { ...cur.fields, lat: r.lat, lng: r.lng }, provenance: { ...cur.provenance, lat: { source: 'geocoder', detail: `Located from “${q}”`, at: iso() }, lng: { source: 'geocoder', detail: `Located from “${q}”`, at: iso() } } });
+          await useApp
+            .getState()
+            .saveVenue({
+              ...cur,
+              fields: { ...cur.fields, lat: r.lat, lng: r.lng },
+              provenance: {
+                ...cur.provenance,
+                lat: { source: 'geocoder', detail: `Located from “${q}”`, at: iso() },
+                lng: { source: 'geocoder', detail: `Located from “${q}”`, at: iso() },
+              },
+            });
         } else if (!r) failed++;
       } catch {
         failed++;
       }
     }
-    if (failed) st.toast({ text: `${failed} venue${failed > 1 ? 's' : ''} couldn’t be placed on the map. Add an address to fix it.` }, 7000);
+    if (failed)
+      st.toast(
+        {
+          text: `${failed} venue${failed > 1 ? 's' : ''} couldn’t be placed on the map. Add an address to fix it.`,
+        },
+        7000,
+      );
   })();
   return job.id;
 

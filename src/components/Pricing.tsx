@@ -1,6 +1,12 @@
 import { AlertTriangle, CheckCircle2, CircleDashed, CircleHelp, CircleDot, Info } from 'lucide-react';
 import { useState } from 'react';
-import { CATEGORY_LABEL, CONFIDENCE_LABEL, type Confidence, type Estimate, type LineCategory } from '../lib/pricing';
+import {
+  CATEGORY_LABEL,
+  CONFIDENCE_LABEL,
+  type Confidence,
+  type Estimate,
+  type LineCategory,
+} from '../lib/pricing';
 import { cx, money, range, shortDate } from '../lib/format';
 import { Modal } from './ui';
 
@@ -21,7 +27,11 @@ export const CAT_PATTERN: Record<LineCategory, string> = {
 };
 
 const CONF_STYLE: Record<Confidence, { cls: string; Icon: typeof CheckCircle2; hint: string }> = {
-  complete: { cls: 'text-ok border-ok/30 bg-ok/10', Icon: CheckCircle2, hint: 'All pricing pieces are on file' },
+  complete: {
+    cls: 'text-ok border-ok/30 bg-ok/10',
+    Icon: CheckCircle2,
+    hint: 'All pricing pieces are on file',
+  },
   partial: { cls: 'text-warn border-warn/30 bg-warn/10', Icon: CircleDot, hint: 'Some pieces are assumed' },
   rough: { cls: 'text-bad border-bad/30 bg-bad/10', Icon: CircleDashed, hint: 'Major pieces are estimated' },
   unknown: { cls: 'text-muted border-line bg-sunken', Icon: CircleHelp, hint: 'No pricing on file' },
@@ -31,7 +41,11 @@ export function ConfidenceBadge({ c, small }: { c: Confidence; small?: boolean }
   const s = CONF_STYLE[c];
   return (
     <span
-      className={cx('inline-flex items-center gap-1 rounded-full border font-medium', s.cls, small ? 'text-[11px] px-2 h-6' : 'text-xs px-2.5 h-7')}
+      className={cx(
+        'inline-flex items-center gap-1 rounded-full border font-medium',
+        s.cls,
+        small ? 'text-[11px] px-2 h-6' : 'text-xs px-2.5 h-7',
+      )}
       title={`${CONFIDENCE_LABEL[c]} pricing — ${s.hint}`}
     >
       <s.Icon size={small ? 12 : 14} aria-hidden />
@@ -40,23 +54,51 @@ export function ConfidenceBadge({ c, small }: { c: Confidence; small?: boolean }
   );
 }
 
-export function StackedBar({ e, height = 12, showLegend = true }: { e: Estimate; height?: number; showLegend?: boolean }) {
+export function StackedBar({
+  e,
+  height = 12,
+  showLegend = true,
+}: {
+  e: Estimate;
+  height?: number;
+  showLegend?: boolean;
+}) {
   const total = e.total ?? 0;
   const cats = (Object.keys(e.byCategory) as LineCategory[]).filter((c) => e.byCategory[c] > 0);
   if (!total) return null;
   return (
     <div>
-      <div className="flex w-full overflow-hidden rounded-full bg-sunken" style={{ height }} role="img" aria-label={cats.map((c) => `${CATEGORY_LABEL[c]} ${money(e.byCategory[c])}`).join(', ')}>
+      <div
+        className="flex w-full overflow-hidden rounded-full bg-sunken"
+        style={{ height }}
+        role="img"
+        aria-label={cats.map((c) => `${CATEGORY_LABEL[c]} ${money(e.byCategory[c])}`).join(', ')}
+      >
         {cats.map((c) => (
-          <div key={c} style={{ width: `${(e.byCategory[c] / total) * 100}%`, background: `${CAT_PATTERN[c] === 'none' ? '' : CAT_PATTERN[c] + ','}${CAT_COLORS[c]}` }} title={`${CATEGORY_LABEL[c]}: ${money(e.byCategory[c])}`} />
+          <div
+            key={c}
+            style={{
+              width: `${(e.byCategory[c] / total) * 100}%`,
+              background: `${CAT_PATTERN[c] === 'none' ? '' : CAT_PATTERN[c] + ','}${CAT_COLORS[c]}`,
+            }}
+            title={`${CATEGORY_LABEL[c]}: ${money(e.byCategory[c])}`}
+          />
         ))}
       </div>
       {showLegend && (
         <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted">
           {cats.map((c) => (
             <li key={c} className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm" style={{ background: `${CAT_PATTERN[c] === 'none' ? '' : CAT_PATTERN[c] + ','}${CAT_COLORS[c]}` }} aria-hidden />
-              {CATEGORY_LABEL[c]} <span className="text-ink tabular-nums">{money(e.byCategory[c], { compact: true })}</span> · {Math.round((e.byCategory[c] / total) * 100)}%
+              <span
+                className="h-2.5 w-2.5 rounded-sm"
+                style={{
+                  background: `${CAT_PATTERN[c] === 'none' ? '' : CAT_PATTERN[c] + ','}${CAT_COLORS[c]}`,
+                }}
+                aria-hidden
+              />
+              {CATEGORY_LABEL[c]}{' '}
+              <span className="text-ink tabular-nums">{money(e.byCategory[c], { compact: true })}</span> ·{' '}
+              {Math.round((e.byCategory[c] / total) * 100)}%
             </li>
           ))}
         </ul>
@@ -79,9 +121,17 @@ export function Breakdown({ e, pricingAsOf }: { e: Estimate; pricingAsOf?: strin
             <tr key={l.key + l.label} className="border-b border-line/70 last:border-0 align-top">
               <td className="py-2 pr-3">
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ background: CAT_COLORS[l.category] }} aria-hidden />
+                  <span
+                    className="h-2.5 w-2.5 rounded-sm shrink-0"
+                    style={{ background: CAT_COLORS[l.category] }}
+                    aria-hidden
+                  />
                   <span>{l.label}</span>
-                  {l.estimated && <span className="text-[10px] uppercase tracking-wider text-warn border border-warn/40 rounded px-1">est.</span>}
+                  {l.estimated && (
+                    <span className="text-[10px] uppercase tracking-wider text-warn border border-warn/40 rounded px-1">
+                      est.
+                    </span>
+                  )}
                 </div>
                 {l.detail && <div className="text-xs text-muted ml-[18px]">{l.detail}</div>}
               </td>
@@ -128,7 +178,12 @@ export function Breakdown({ e, pricingAsOf }: { e: Estimate; pricingAsOf?: strin
           )}
         </div>
       )}
-      {pricingAsOf && <p className="text-xs text-muted">Pricing as of {shortDate(pricingAsOf)}{e.stale ? ' — may be outdated' : ''}.</p>}
+      {pricingAsOf && (
+        <p className="text-xs text-muted">
+          Pricing as of {shortDate(pricingAsOf)}
+          {e.stale ? ' — may be outdated' : ''}.
+        </p>
+      )}
     </div>
   );
 }
@@ -157,13 +212,24 @@ export function PriceSummary({
           setOpen(true);
         }}
         className="text-left group/price rounded-lg -m-1 p-1 hover:bg-sunken/70 transition"
-        aria-label={e.total == null ? `${name}: pricing unknown. How we got this` : `${name}: estimated total ${money(e.total)}, ${money(e.perGuest)} per guest. How we got this`}
+        aria-label={
+          e.total == null
+            ? `${name}: pricing unknown. How we got this`
+            : `${name}: estimated total ${money(e.total)}, ${money(e.perGuest)} per guest. How we got this`
+        }
       >
         {e.total == null ? (
-          <span className={cx('text-muted', size === 'lg' ? 'text-2xl font-serif' : 'text-sm')}>Price on request</span>
+          <span className={cx('text-muted', size === 'lg' ? 'text-2xl font-serif' : 'text-sm')}>
+            Price on request
+          </span>
         ) : (
           <span className="flex flex-wrap items-baseline gap-x-2">
-            <span className={cx('font-semibold tabular-nums', size === 'lg' ? 'text-3xl font-serif font-normal' : size === 'md' ? 'text-[17px]' : 'text-sm')}>
+            <span
+              className={cx(
+                'font-semibold tabular-nums',
+                size === 'lg' ? 'text-3xl font-serif font-normal' : size === 'md' ? 'text-[17px]' : 'text-sm',
+              )}
+            >
               {size === 'sm' ? money(e.total, { compact: true }) : money(e.total)}
             </span>
             <span className="text-sm text-muted tabular-nums">{money(e.perGuest)}/guest</span>
@@ -173,7 +239,15 @@ export function PriceSummary({
           {r ? `Range ${r} · ` : ''}How we got this
         </span>
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title={<>How we got this <span className="text-muted text-base font-sans">· {name}</span></>}>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={
+          <>
+            How we got this <span className="text-muted text-base font-sans">· {name}</span>
+          </>
+        }
+      >
         <div className="flex items-center gap-2 mb-4">
           <ConfidenceBadge c={e.confidence} />
           {e.stale && <span className="text-xs text-warn">Pricing may be outdated</span>}

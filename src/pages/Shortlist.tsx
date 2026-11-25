@@ -1,5 +1,20 @@
-import { closestCenter, DndContext, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ArrowDown, ArrowUp, GitCompareArrows, GripVertical, ListOrdered, X } from 'lucide-react';
 import { useMemo } from 'react';
@@ -12,7 +27,17 @@ import { cx, money } from '../lib/format';
 import { venuePhotos } from '../lib/images';
 import { useApp } from '../store/app';
 
-function Row({ m, index, count, move }: { m: UserVenue; index: number; count: number; move: (from: number, to: number) => void }) {
+function Row({
+  m,
+  index,
+  count,
+  move,
+}: {
+  m: UserVenue;
+  index: number;
+  count: number;
+  move: (from: number, to: number) => void;
+}) {
   const profile = useApp((s) => s.profile);
   const remove = useApp((s) => s.removeFromShortlist);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
@@ -23,7 +48,10 @@ function Row({ m, index, count, move }: { m: UserVenue; index: number; count: nu
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cx('card flex items-center gap-3 p-3 sm:p-4 bg-surface', isDragging && 'shadow-lift ring-2 ring-gold/50 z-10 relative')}
+      className={cx(
+        'card flex items-center gap-3 p-3 sm:p-4 bg-surface',
+        isDragging && 'shadow-lift ring-2 ring-gold/50 z-10 relative',
+      )}
       data-testid="shortlist-row"
     >
       <button
@@ -34,16 +62,24 @@ function Row({ m, index, count, move }: { m: UserVenue; index: number; count: nu
       >
         <GripVertical size={18} />
       </button>
-      <span className="font-serif text-3xl w-8 text-center text-gold tabular-nums" aria-label={`Rank ${index + 1}`}>
+      <span
+        className="font-serif text-3xl w-8 text-center text-gold tabular-nums"
+        aria-label={`Rank ${index + 1}`}
+      >
         {index + 1}
       </span>
-      <img src={venuePhotos(v.ref.slice(2), m.fields)[0].url} alt="" className="h-16 w-20 rounded-xl object-cover hidden sm:block" />
+      <img
+        src={venuePhotos(v.ref.slice(2), m.fields)[0].url}
+        alt=""
+        className="h-16 w-20 rounded-xl object-cover hidden sm:block"
+      />
       <div className="flex-1 min-w-0">
         <Link to={`/venue/u/${m.id}`} className="font-serif text-xl hover:underline block truncate">
           {m.fields.name}
         </Link>
         <div className="text-sm text-muted truncate">
-          {[m.fields.area, m.fields.region].filter(Boolean).join(', ')} · <span className={f.fits === false ? 'text-bad' : ''}>{f.label}</span>
+          {[m.fields.area, m.fields.region].filter(Boolean).join(', ')} ·{' '}
+          <span className={f.fits === false ? 'text-bad' : ''}>{f.label}</span>
         </div>
       </div>
       <div className="text-right hidden sm:block">
@@ -54,14 +90,28 @@ function Row({ m, index, count, move }: { m: UserVenue; index: number; count: nu
         <ConfidenceBadge c={e.confidence} small />
       </div>
       <div className="flex flex-col sm:flex-row">
-        <button className="icon-btn h-11 w-11" disabled={index === 0} onClick={() => move(index, index - 1)} aria-label={`Move ${m.fields.name} up`}>
+        <button
+          className="icon-btn h-11 w-11"
+          disabled={index === 0}
+          onClick={() => move(index, index - 1)}
+          aria-label={`Move ${m.fields.name} up`}
+        >
           <ArrowUp size={16} />
         </button>
-        <button className="icon-btn h-11 w-11" disabled={index === count - 1} onClick={() => move(index, index + 1)} aria-label={`Move ${m.fields.name} down`}>
+        <button
+          className="icon-btn h-11 w-11"
+          disabled={index === count - 1}
+          onClick={() => move(index, index + 1)}
+          aria-label={`Move ${m.fields.name} down`}
+        >
           <ArrowDown size={16} />
         </button>
       </div>
-      <button className="icon-btn h-11 w-11" onClick={() => void remove(m.id)} aria-label={`Remove ${m.fields.name} from shortlist`}>
+      <button
+        className="icon-btn h-11 w-11"
+        onClick={() => void remove(m.id)}
+        aria-label={`Remove ${m.fields.name} from shortlist`}
+      >
         <X size={16} />
       </button>
     </li>
@@ -75,7 +125,10 @@ export default function Shortlist() {
   const setCompare = useApp((s) => s.setCompare);
   const requireAuth = useApp((s) => s.requireAuth);
   const navigate = useNavigate();
-  const list = useMemo(() => mine.filter((m) => m.shortlistRank != null).sort((a, b) => a.shortlistRank! - b.shortlistRank!), [mine]);
+  const list = useMemo(
+    () => mine.filter((m) => m.shortlistRank != null).sort((a, b) => a.shortlistRank! - b.shortlistRank!),
+    [mine],
+  );
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } }),
@@ -92,7 +145,20 @@ export default function Shortlist() {
 
   if (!user)
     return (
-      <Empty icon={<ListOrdered size={40} />} title="Your ranked shortlist" action={<button className="btn-primary" onClick={() => requireAuth('Sign in to build your shortlist.', { type: 'navigate', to: '/shortlist' })}>Sign in</button>}>
+      <Empty
+        icon={<ListOrdered size={40} />}
+        title="Your ranked shortlist"
+        action={
+          <button
+            className="btn-primary"
+            onClick={() =>
+              requireAuth('Sign in to build your shortlist.', { type: 'navigate', to: '/shortlist' })
+            }
+          >
+            Sign in
+          </button>
+        }
+      >
         Drag your favorites into order. Your ranking syncs to every device.
       </Empty>
     );
@@ -103,7 +169,9 @@ export default function Shortlist() {
         <div>
           <p className="label mb-2">Favorites, in order</p>
           <h1 className="text-4xl">Shortlist</h1>
-          <p className="text-muted text-sm mt-1">Drag to reorder (long-press on phones), or use the arrows. Saved automatically.</p>
+          <p className="text-muted text-sm mt-1">
+            Drag to reorder (long-press on phones), or use the arrows. Saved automatically.
+          </p>
         </div>
         {list.length >= 2 && (
           <button
@@ -118,17 +186,32 @@ export default function Shortlist() {
         )}
       </div>
       {list.length === 0 ? (
-        <Empty title="No favorites yet" action={<Link to="/mine" className="btn-primary">Go to My Venues</Link>}>
+        <Empty
+          title="No favorites yet"
+          action={
+            <Link to="/mine" className="btn-primary">
+              Go to My Venues
+            </Link>
+          }
+        >
           Open a saved venue and choose “Add to shortlist”, or set its status to Shortlisted.
         </Empty>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onEnd}
-          accessibility={{ announcements: {
-            onDragStart: ({ active }) => `Picked up ${list.find((m) => m.id === active.id)?.fields.name}.`,
-            onDragOver: ({ over }) => (over ? `Over position ${list.findIndex((m) => m.id === over.id) + 1}.` : ''),
-            onDragEnd: ({ over }) => (over ? `Dropped at position ${list.findIndex((m) => m.id === over.id) + 1}.` : 'Dropped.'),
-            onDragCancel: () => 'Reorder cancelled.',
-          } }}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={onEnd}
+          accessibility={{
+            announcements: {
+              onDragStart: ({ active }) => `Picked up ${list.find((m) => m.id === active.id)?.fields.name}.`,
+              onDragOver: ({ over }) =>
+                over ? `Over position ${list.findIndex((m) => m.id === over.id) + 1}.` : '',
+              onDragEnd: ({ over }) =>
+                over ? `Dropped at position ${list.findIndex((m) => m.id === over.id) + 1}.` : 'Dropped.',
+              onDragCancel: () => 'Reorder cancelled.',
+            },
+          }}
+        >
           <SortableContext items={list.map((m) => m.id)} strategy={verticalListSortingStrategy}>
             <ol className="space-y-3" aria-label="Ranked shortlist">
               {list.map((m, i) => (

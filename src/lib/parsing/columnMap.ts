@@ -31,15 +31,88 @@ export interface ColumnMapping {
 }
 
 export const EXTRA_TARGETS: { key: ExtraTarget; label: string; synonyms: string[] }[] = [
-  { key: 'pricingText', label: 'Pricing (free text)', synonyms: ['price', 'pricing', 'cost', 'costs', 'rate', 'rates', 'price notes', 'pricing notes', 'quote', 'est cost', 'estimate'] },
-  { key: 'perPerson', label: 'Per-person price', synonyms: ['per person', 'pp', 'price per person', 'per guest', 'cost per person', 'cost per head', 'pp price', '$/pp', 'per head'] },
-  { key: 'fnbMinimum', label: 'F&B minimum', synonyms: ['minimum', 'f&b minimum', 'fnb min', 'food and beverage minimum', 'min spend', 'minimum spend', 'f&b min', 'food minimum'] },
-  { key: 'siteFee', label: 'Site / rental fee', synonyms: ['site fee', 'rental fee', 'venue fee', 'rental', 'room fee', 'venue rental', 'facility fee'] },
-  { key: 'serviceCharge', label: 'Service charge %', synonyms: ['service charge', 'service', 'service %', 'svc charge', 'service fee'] },
+  {
+    key: 'pricingText',
+    label: 'Pricing (free text)',
+    synonyms: [
+      'price',
+      'pricing',
+      'cost',
+      'costs',
+      'rate',
+      'rates',
+      'price notes',
+      'pricing notes',
+      'quote',
+      'est cost',
+      'estimate',
+    ],
+  },
+  {
+    key: 'perPerson',
+    label: 'Per-person price',
+    synonyms: [
+      'per person',
+      'pp',
+      'price per person',
+      'per guest',
+      'cost per person',
+      'cost per head',
+      'pp price',
+      '$/pp',
+      'per head',
+    ],
+  },
+  {
+    key: 'fnbMinimum',
+    label: 'F&B minimum',
+    synonyms: [
+      'minimum',
+      'f&b minimum',
+      'fnb min',
+      'food and beverage minimum',
+      'min spend',
+      'minimum spend',
+      'f&b min',
+      'food minimum',
+    ],
+  },
+  {
+    key: 'siteFee',
+    label: 'Site / rental fee',
+    synonyms: ['site fee', 'rental fee', 'venue fee', 'rental', 'room fee', 'venue rental', 'facility fee'],
+  },
+  {
+    key: 'serviceCharge',
+    label: 'Service charge %',
+    synonyms: ['service charge', 'service', 'service %', 'svc charge', 'service fee'],
+  },
   { key: 'taxPct', label: 'Sales tax %', synonyms: ['tax', 'sales tax', 'tax rate', 'tax %'] },
-  { key: 'pricingAsOf', label: 'Pricing as of', synonyms: ['pricing as of', 'as of', 'quote date', 'price date', 'date quoted'] },
-  { key: 'capacityText', label: 'Capacity (free text)', synonyms: ['capacity notes', 'capacity (seated/standing)', 'guest count', 'max', 'capacity range'] },
-  { key: 'notes', label: 'Notes', synonyms: ['notes', 'comments', 'thoughts', 'comment', 'remarks', 'our notes', 'impressions', 'pros/cons', 'misc'] },
+  {
+    key: 'pricingAsOf',
+    label: 'Pricing as of',
+    synonyms: ['pricing as of', 'as of', 'quote date', 'price date', 'date quoted'],
+  },
+  {
+    key: 'capacityText',
+    label: 'Capacity (free text)',
+    synonyms: ['capacity notes', 'capacity (seated/standing)', 'guest count', 'max', 'capacity range'],
+  },
+  {
+    key: 'notes',
+    label: 'Notes',
+    synonyms: [
+      'notes',
+      'comments',
+      'thoughts',
+      'comment',
+      'remarks',
+      'our notes',
+      'impressions',
+      'pros/cons',
+      'misc',
+    ],
+  },
   { key: 'status', label: 'Status', synonyms: ['status', 'stage', 'progress'] },
   { key: 'rating', label: 'Rating', synonyms: ['rating', 'score', 'stars', 'rank', 'our rating'] },
   { key: 'tags', label: 'Tags', synonyms: ['labels', 'my tags', 'categories'] },
@@ -87,19 +160,26 @@ function scoreHeader(h: string, synonyms: string[]): number {
   for (const syn of synonyms) {
     const s = normalizeHeader(syn);
     if (n === s) return 1;
-    if (new RegExp(`(^| )${s.replace(/[$/]/g, '\\$&')}( |$)`).test(n)) best = Math.max(best, s.length > 3 ? 0.85 : 0.7);
+    if (new RegExp(`(^| )${s.replace(/[$/]/g, '\\$&')}( |$)`).test(n))
+      best = Math.max(best, s.length > 3 ? 0.85 : 0.7);
     best = Math.max(best, dice(n, s) * 0.9);
   }
   return best;
 }
 
 const ALL_TARGETS: { key: MapTarget; synonyms: string[] }[] = [
-  ...FIELD_DEFS.filter((f) => f.type !== 'photos').map((f) => ({ key: f.key as MapTarget, synonyms: f.synonyms })),
+  ...FIELD_DEFS.filter((f) => f.type !== 'photos').map((f) => ({
+    key: f.key as MapTarget,
+    synonyms: f.synonyms,
+  })),
   ...EXTRA_TARGETS.map((t) => ({ key: t.key as MapTarget, synonyms: t.synonyms })),
 ];
 
 function contentHint(values: string[]): { target: MapTarget; confidence: number } | null {
-  const v = values.map((x) => x.trim()).filter(Boolean).slice(0, 25);
+  const v = values
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .slice(0, 25);
   if (!v.length) return null;
   const ratio = (re: RegExp) => v.filter((x) => re.test(x)).length / v.length;
   if (ratio(/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i) > 0.6) return { target: 'contactEmail', confidence: 0.8 };
@@ -118,17 +198,28 @@ export function autoMapColumns(headers: string[], sampleRows: string[][] = []): 
       if (sc >= 0.6) cands.push({ index: i, target: t.key, confidence: sc });
     }
     const hint = contentHint(sampleRows.map((r) => r[i] ?? ''));
-    if (hint) cands.push({ index: i, target: hint.target, confidence: hint.confidence - (h.trim() ? 0.05 : 0) });
+    if (hint)
+      cands.push({ index: i, target: hint.target, confidence: hint.confidence - (h.trim() ? 0.05 : 0) });
   });
   cands.sort((a, b) => b.confidence - a.confidence);
   const usedT = new Set<MapTarget>();
   const usedC = new Set<number>();
-  const result: ColumnMapping[] = headers.map((h, i) => ({ index: i, header: h, target: 'skip', confidence: 0 }));
+  const result: ColumnMapping[] = headers.map((h, i) => ({
+    index: i,
+    header: h,
+    target: 'skip',
+    confidence: 0,
+  }));
   for (const c of cands) {
     if (usedT.has(c.target) || usedC.has(c.index)) continue;
     usedT.add(c.target);
     usedC.add(c.index);
-    result[c.index] = { index: c.index, header: headers[c.index], target: c.target, confidence: +c.confidence.toFixed(2) };
+    result[c.index] = {
+      index: c.index,
+      header: headers[c.index],
+      target: c.target,
+      confidence: +c.confidence.toFixed(2),
+    };
   }
   // Unmapped columns with long text become notes if no notes column exists.
   if (!usedT.has('notes')) {
@@ -156,8 +247,10 @@ export interface RowResult {
   warnings: string[];
 }
 
-const truthy = (s: string) => /^(y|yes|true|x|✓|✔|1|on[- ]?site|available|allowed)$/i.test(s.trim()) || /^yes\b/i.test(s.trim());
-const falsy = (s: string) => /^(n|no|false|0|none|not available|n\/a)$/i.test(s.trim()) || /^no\b/i.test(s.trim());
+const truthy = (s: string) =>
+  /^(y|yes|true|x|✓|✔|1|on[- ]?site|available|allowed)$/i.test(s.trim()) || /^yes\b/i.test(s.trim());
+const falsy = (s: string) =>
+  /^(n|no|false|0|none|not available|n\/a)$/i.test(s.trim()) || /^no\b/i.test(s.trim());
 
 function parseNumber(s: string): number | undefined {
   const m = /-?\d[\d,]*(\.\d+)?/.exec(s);
@@ -274,13 +367,20 @@ export function rowToVenue(row: string[], mapping: ColumnMapping[]): RowResult {
         break;
       case 'styleTags':
       case 'inclusions':
-        fields[t] = raw.split(/[,;/|]+/).map((s) => s.trim()).filter(Boolean);
+        fields[t] = raw
+          .split(/[,;/|]+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
         ok();
         break;
       case 'spaces':
         fields.spaces = raw.split(/[;|\n]+/).map((s) => {
           const cap = parseCapacityText(s);
-          return { name: s.replace(/\(.*?\)|\d+\s*(seated|standing|guests)?/gi, '').trim() || s.trim(), seated: cap.seated, standing: cap.standing };
+          return {
+            name: s.replace(/\(.*?\)|\d+\s*(seated|standing|guests)?/gi, '').trim() || s.trim(),
+            seated: cap.seated,
+            standing: cap.standing,
+          };
         });
         ok();
         break;
@@ -299,9 +399,21 @@ export function rowToVenue(row: string[], mapping: ColumnMapping[]): RowResult {
           // Free-text inside a typed column ("$150 Sat / $125 Fri") — let the text parser handle conditions.
           if (/[a-z]{3,}/i.test(raw.replace(/per person|pp|k\b|min(imum)?|fee/gi, ''))) {
             const suffix = t === 'perPerson' ? ' per person' : t === 'fnbMinimum' ? ' minimum' : ' site fee';
-            pricingTexts.push(raw.split(/[,;/]+/).map((p) => (/\$|\d/.test(p) ? p + suffix : p)).join('; '));
-          } else if (t === 'perPerson') pricing.components.push({ id: newId('pp'), kind: 'per_person', name: 'Per-person package', rates: [{ amount: v }] });
-          else if (t === 'fnbMinimum') pricing.components.push({ id: newId('min'), kind: 'fnb_minimum', rates: [{ amount: v }] });
+            pricingTexts.push(
+              raw
+                .split(/[,;/]+/)
+                .map((p) => (/\$|\d/.test(p) ? p + suffix : p))
+                .join('; '),
+            );
+          } else if (t === 'perPerson')
+            pricing.components.push({
+              id: newId('pp'),
+              kind: 'per_person',
+              name: 'Per-person package',
+              rates: [{ amount: v }],
+            });
+          else if (t === 'fnbMinimum')
+            pricing.components.push({ id: newId('min'), kind: 'fnb_minimum', rates: [{ amount: v }] });
           else pricing.components.push({ id: newId('site'), kind: 'site_fee', rates: [{ amount: v }] });
         }
         ok();
@@ -346,7 +458,12 @@ export function rowToVenue(row: string[], mapping: ColumnMapping[]): RowResult {
         break;
       }
       case 'tags':
-        tags.push(...raw.split(/[,;|]+/).map((s) => s.trim()).filter(Boolean));
+        tags.push(
+          ...raw
+            .split(/[,;|]+/)
+            .map((s) => s.trim())
+            .filter(Boolean),
+        );
         ok();
         break;
       default: {
@@ -373,6 +490,10 @@ export function rowToVenue(row: string[], mapping: ColumnMapping[]): RowResult {
     }
   }
   if (!fields.name) warnings.push('Missing venue name');
-  const confidence = !fields.name ? 0.1 : mappedCount ? Math.min(0.95, 0.4 + (parsedOk / mappedCount) * 0.5 + (pricing.components.length ? 0.1 : 0)) : 0.3;
+  const confidence = !fields.name
+    ? 0.1
+    : mappedCount
+      ? Math.min(0.95, 0.4 + (parsedOk / mappedCount) * 0.5 + (pricing.components.length ? 0.1 : 0))
+      : 0.3;
   return { fields, pricing, notes, status, rating, tags, confidence: +confidence.toFixed(2), warnings };
 }

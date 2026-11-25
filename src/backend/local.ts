@@ -80,8 +80,14 @@ export function createLocalBackend(): Backend {
     },
     async signInDemo(email, name) {
       const e = email.trim().toLowerCase();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw new BackendError('Enter a valid email address.', 'auth');
-      const id = 'demo-' + Array.from(e).reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7).toString(36).replace('-', 'n');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))
+        throw new BackendError('Enter a valid email address.', 'auth');
+      const id =
+        'demo-' +
+        Array.from(e)
+          .reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7)
+          .toString(36)
+          .replace('-', 'n');
       const user: AppUser = { id, email: e, name: name || e.split('@')[0] };
       write(SESSION, user);
       notify();
@@ -100,13 +106,17 @@ export function createLocalBackend(): Backend {
     async listGlobal(opts) {
       const overrides = read<Record<string, GlobalVenue | null>>(GLOBAL_OVERRIDES, {});
       const base = stress ? buildStressVenues(stress) : buildSeedVenues();
-      const merged = base.map((v) => (v.id in overrides ? overrides[v.id] : v)).filter((v): v is GlobalVenue => !!v);
-      for (const [id, v] of Object.entries(overrides)) if (v && !base.some((b) => b.id === id)) merged.push(v);
+      const merged = base
+        .map((v) => (v.id in overrides ? overrides[v.id] : v))
+        .filter((v): v is GlobalVenue => !!v);
+      for (const [id, v] of Object.entries(overrides))
+        if (v && !base.some((b) => b.id === id)) merged.push(v);
       return opts?.includeUnpublished ? merged : merged.filter((v) => v.published);
     },
     async saveGlobal(v) {
       const u = current();
-      if (!u || !(await backend.isAdmin(u))) throw new BackendError('Only admins can edit the global library.', 'auth');
+      if (!u || !(await backend.isAdmin(u)))
+        throw new BackendError('Only admins can edit the global library.', 'auth');
       const o = read<Record<string, GlobalVenue | null>>(GLOBAL_OVERRIDES, {});
       const saved = { ...v, id: v.id || newId('gv'), updatedAt: new Date().toISOString() };
       o[saved.id] = saved;
@@ -145,7 +155,13 @@ export function createLocalBackend(): Backend {
       const id = newId('doc');
       const key = `${uid()}/${id}`;
       await idb.put(key, file);
-      return upsert('documents', { ...meta, id, ownerId: uid(), storagePath: key, createdAt: new Date().toISOString() });
+      return upsert('documents', {
+        ...meta,
+        id,
+        ownerId: uid(),
+        storagePath: key,
+        createdAt: new Date().toISOString(),
+      });
     },
     updateDocument: async (d) => void upsert('documents', d),
     async getDocumentBlob(d) {
@@ -189,7 +205,8 @@ export function createLocalBackend(): Backend {
     },
     async deleteAccount() {
       const id = uid();
-      for (const k of Object.keys(localStorage)) if (k.startsWith(`vellum:demo:${id}:`)) localStorage.removeItem(k);
+      for (const k of Object.keys(localStorage))
+        if (k.startsWith(`vellum:demo:${id}:`)) localStorage.removeItem(k);
       await backend.signOut();
     },
   };

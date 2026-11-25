@@ -10,13 +10,25 @@ export interface ExportRow {
 }
 
 function textOf(html: string) {
-  return html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|li|div)>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|li|div)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .trim();
 }
 
 export function rowsToRecords(rows: ExportRow[]) {
   return rows.map(({ v, e, notes }) => {
     const f = v.fields;
-    const comp = (k: string) => v.pricing.components.filter((c) => c.kind === k).map((c) => c.rates.map((r) => r.amount).join('/')).join('; ');
+    const comp = (k: string) =>
+      v.pricing.components
+        .filter((c) => c.kind === k)
+        .map((c) => c.rates.map((r) => r.amount).join('/'))
+        .join('; ');
     return {
       Name: f.name,
       Source: v.kind === 'global' ? 'Global library' : v.mine?.globalId ? 'Saved from library' : 'Your venue',
@@ -48,13 +60,20 @@ export function rowsToRecords(rows: ExportRow[]) {
       'Range low': e.low ?? '',
       'Range high': e.high ?? '',
       Confidence: CONFIDENCE_LABEL[e.confidence],
-      ...Object.fromEntries(Object.entries(e.byCategory).map(([k, val]) => [CATEGORY_LABEL[k as keyof typeof CATEGORY_LABEL], val || ''])),
+      ...Object.fromEntries(
+        Object.entries(e.byCategory).map(([k, val]) => [
+          CATEGORY_LABEL[k as keyof typeof CATEGORY_LABEL],
+          val || '',
+        ]),
+      ),
       Assumptions: [...e.assumptions, ...e.missing].join(' | '),
       Status: v.mine?.status ?? '',
       'Shortlist rank': v.mine?.shortlistRank ?? '',
       Rating: v.mine?.rating ?? '',
       Tags: (v.mine?.tags ?? []).join(', '),
-      Notes: notes.map((n) => `${n.kind === 'pro' ? '+ ' : n.kind === 'con' ? '- ' : ''}${textOf(n.html)}`).join('\n'),
+      Notes: notes
+        .map((n) => `${n.kind === 'pro' ? '+ ' : n.kind === 'con' ? '- ' : ''}${textOf(n.html)}`)
+        .join('\n'),
     };
   });
 }
@@ -70,7 +89,10 @@ export async function exportSheet(rows: ExportRow[], format: 'xlsx' | 'csv', fil
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Venues');
   const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-  downloadBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${filename}.xlsx`);
+  downloadBlob(
+    new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    `${filename}.xlsx`,
+  );
 }
 
 async function pdfLibs() {
@@ -90,10 +112,37 @@ export async function compareReportPdf(rows: ExportRow[], profile: WeddingProfil
   doc.text('Venue comparison', 40, 50);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(`Priced for ${profile.guestCount} guests · generated ${new Date().toLocaleDateString()} · estimates, not quotes`, 40, 68);
+  doc.text(
+    `Priced for ${profile.guestCount} guests · generated ${new Date().toLocaleDateString()} · estimates, not quotes`,
+    40,
+    68,
+  );
   const recs = rowsToRecords(rows);
-  const keys = ['Estimated total', 'Per guest', 'Confidence', 'Venue & rental', 'Food & beverage', 'Add-ons', 'Service & fees', 'Tax', 'Seated capacity', 'Setting', 'Catering', 'Ceremony on-site', 'Accommodations', 'Area', 'Pricing as of', 'Status', 'Rating'];
-  const fmt = (k: string, v: unknown) => (typeof v === 'number' && /total|guest|rental|beverage|add-ons|fees|tax/i.test(k) && k !== 'Seated capacity' ? money(v) : String(v ?? ''));
+  const keys = [
+    'Estimated total',
+    'Per guest',
+    'Confidence',
+    'Venue & rental',
+    'Food & beverage',
+    'Add-ons',
+    'Service & fees',
+    'Tax',
+    'Seated capacity',
+    'Setting',
+    'Catering',
+    'Ceremony on-site',
+    'Accommodations',
+    'Area',
+    'Pricing as of',
+    'Status',
+    'Rating',
+  ];
+  const fmt = (k: string, v: unknown) =>
+    typeof v === 'number' &&
+    /total|guest|rental|beverage|add-ons|fees|tax/i.test(k) &&
+    k !== 'Seated capacity'
+      ? money(v)
+      : String(v ?? '');
   autoTable(doc, {
     startY: 84,
     head: [['', ...recs.map((r) => r.Name)]],
@@ -138,11 +187,20 @@ export async function onePagerPdf(row: ExportRow, _profile: WeddingProfile, phot
   doc.text(v.fields.name, 40, y);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text([v.fields.area, v.fields.region].filter(Boolean).join(', ') + (v.isSample ? ' · SAMPLE DATA (fictional)' : ''), 40, y + 16);
+  doc.text(
+    [v.fields.area, v.fields.region].filter(Boolean).join(', ') +
+      (v.isSample ? ' · SAMPLE DATA (fictional)' : ''),
+    40,
+    y + 16,
+  );
   doc.setFontSize(18);
   doc.text(`${money(e.total)}  ·  ${money(e.perGuest)}/guest`, 40, y + 46);
   doc.setFontSize(9);
-  doc.text(`Estimated all-in for ${e.scenario.guests} guests · ${CONFIDENCE_LABEL[e.confidence]} confidence`, 40, y + 60);
+  doc.text(
+    `Estimated all-in for ${e.scenario.guests} guests · ${CONFIDENCE_LABEL[e.confidence]} confidence`,
+    40,
+    y + 60,
+  );
   autoTable(doc, {
     startY: y + 72,
     head: [['Component', 'Detail', 'Amount']],
@@ -158,11 +216,24 @@ export async function onePagerPdf(row: ExportRow, _profile: WeddingProfile, phot
     ['Catering', v.fields.cateringPolicy ?? ''],
     ['Ceremony on-site', v.fields.ceremonyOnSite ? 'Yes' : v.fields.ceremonyOnSite === false ? 'No' : ''],
     ['Curfew', v.fields.noiseCurfew ?? ''],
-    ['Contact', [v.fields.contactName, v.fields.contactEmail, v.fields.contactPhone].filter(Boolean).join(' · ')],
+    [
+      'Contact',
+      [v.fields.contactName, v.fields.contactEmail, v.fields.contactPhone].filter(Boolean).join(' · '),
+    ],
   ].filter((r) => r[1]);
-  autoTable(doc, { startY: ny, body: facts, styles: { fontSize: 9 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 110 } }, theme: 'plain' });
+  autoTable(doc, {
+    startY: ny,
+    body: facts,
+    styles: { fontSize: 9 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 110 } },
+    theme: 'plain',
+  });
   ny = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 14;
-  const text = [...e.assumptions.map((a) => `Assumption: ${a}`), ...e.missing.map((a) => `Missing: ${a}`), ...notes.map((n) => `${n.kind === 'pro' ? 'Pro' : n.kind === 'con' ? 'Con' : 'Note'}: ${textOf(n.html)}`)];
+  const text = [
+    ...e.assumptions.map((a) => `Assumption: ${a}`),
+    ...e.missing.map((a) => `Missing: ${a}`),
+    ...notes.map((n) => `${n.kind === 'pro' ? 'Pro' : n.kind === 'con' ? 'Con' : 'Note'}: ${textOf(n.html)}`),
+  ];
   doc.setFontSize(9);
   doc.text(doc.splitTextToSize(text.join('\n'), 532), 40, ny);
   doc.save(`${v.fields.name.replace(/[^\w]+/g, '-').toLowerCase()}.pdf`);
@@ -178,8 +249,21 @@ export interface Backup {
   documents: Omit<DocumentRecord, 'extractedText'>[];
 }
 
-export function makeBackup(profile: WeddingProfile, venues: UserVenue[], notes: VenueNote[], documents: DocumentRecord[]): Backup {
-  return { app: 'vellum', version: 1, exportedAt: new Date().toISOString(), profile, venues, notes, documents: documents.map(({ extractedText: _x, ...d }) => d) };
+export function makeBackup(
+  profile: WeddingProfile,
+  venues: UserVenue[],
+  notes: VenueNote[],
+  documents: DocumentRecord[],
+): Backup {
+  return {
+    app: 'vellum',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    profile,
+    venues,
+    notes,
+    documents: documents.map(({ extractedText: _x, ...d }) => d),
+  };
 }
 
 export function parseBackup(text: string): Backup {
@@ -188,7 +272,11 @@ export function parseBackup(text: string): Backup {
   return b;
 }
 
-export async function backupZip(b: Backup, getBlob: (d: DocumentRecord) => Promise<Blob>, docs: DocumentRecord[]) {
+export async function backupZip(
+  b: Backup,
+  getBlob: (d: DocumentRecord) => Promise<Blob>,
+  docs: DocumentRecord[],
+) {
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   zip.file('vellum-backup.json', JSON.stringify(b, null, 2));
@@ -199,5 +287,8 @@ export async function backupZip(b: Backup, getBlob: (d: DocumentRecord) => Promi
       /* skip missing */
     }
   }
-  downloadBlob(await zip.generateAsync({ type: 'blob' }), `vellum-backup-${new Date().toISOString().slice(0, 10)}.zip`);
+  downloadBlob(
+    await zip.generateAsync({ type: 'blob' }),
+    `vellum-backup-${new Date().toISOString().slice(0, 10)}.zip`,
+  );
 }

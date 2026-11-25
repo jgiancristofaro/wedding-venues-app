@@ -58,7 +58,10 @@ export function App() {
             <Route path="/import" element={<Import />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<Empty title="Page not found">That page doesn’t exist. Head back to Discover.</Empty>} />
+            <Route
+              path="*"
+              element={<Empty title="Page not found">That page doesn’t exist. Head back to Discover.</Empty>}
+            />
           </Routes>
         </Suspense>
       </Layout>

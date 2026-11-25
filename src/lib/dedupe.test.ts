@@ -13,20 +13,37 @@ describe('dedupe', () => {
     expect(jaroWinkler('abc', 'xyz')).toBe(0);
   });
   it('treats "Larkspur Rooms" and "The Larkspur Rooms" as duplicates', () => {
-    expect(similarity({ ref: 'a', name: 'Larkspur Rooms' }, { ref: 'b', name: 'The Larkspur Rooms' }).score).toBeGreaterThanOrEqual(DUPLICATE_THRESHOLD);
+    expect(
+      similarity({ ref: 'a', name: 'Larkspur Rooms' }, { ref: 'b', name: 'The Larkspur Rooms' }).score,
+    ).toBeGreaterThanOrEqual(DUPLICATE_THRESHOLD);
   });
   it('typos still match; different venues do not', () => {
-    expect(similarity({ ref: 'a', name: 'Willowmere Farms' }, { ref: 'b', name: 'Willowmere Farm' }).score).toBeGreaterThanOrEqual(DUPLICATE_THRESHOLD);
-    expect(similarity({ ref: 'a', name: 'Ironwood Foundry' }, { ref: 'b', name: 'Heron Hall' }).score).toBeLessThan(0.7);
+    expect(
+      similarity({ ref: 'a', name: 'Willowmere Farms' }, { ref: 'b', name: 'Willowmere Farm' }).score,
+    ).toBeGreaterThanOrEqual(DUPLICATE_THRESHOLD);
+    expect(
+      similarity({ ref: 'a', name: 'Ironwood Foundry' }, { ref: 'b', name: 'Heron Hall' }).score,
+    ).toBeLessThan(0.7);
   });
   it('location: same name far apart is penalized, nearby is boosted', () => {
-    const far = similarity({ ref: 'a', name: 'Harbor House', lat: 40.7, lng: -74 }, { ref: 'b', name: 'Harbor House', lat: 41.3, lng: -72 });
-    const near = similarity({ ref: 'a', name: 'Harbour House', lat: 40.7, lng: -74 }, { ref: 'b', name: 'Harbor House', lat: 40.701, lng: -74.001 });
+    const far = similarity(
+      { ref: 'a', name: 'Harbor House', lat: 40.7, lng: -74 },
+      { ref: 'b', name: 'Harbor House', lat: 41.3, lng: -72 },
+    );
+    const near = similarity(
+      { ref: 'a', name: 'Harbour House', lat: 40.7, lng: -74 },
+      { ref: 'b', name: 'Harbor House', lat: 40.701, lng: -74.001 },
+    );
     expect(far.score).toBeLessThan(DUPLICATE_THRESHOLD);
     expect(near.score).toBeGreaterThanOrEqual(DUPLICATE_THRESHOLD);
   });
   it('same website is a duplicate regardless of name', () => {
-    expect(similarity({ ref: 'a', name: 'X', website: 'https://www.foo.com/weddings' }, { ref: 'b', name: 'Y', website: 'foo.com' }).score).toBeGreaterThan(0.95);
+    expect(
+      similarity(
+        { ref: 'a', name: 'X', website: 'https://www.foo.com/weddings' },
+        { ref: 'b', name: 'Y', website: 'foo.com' },
+      ).score,
+    ).toBeGreaterThan(0.95);
   });
   it('findDuplicates ranks best first', () => {
     const pool = [

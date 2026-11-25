@@ -31,9 +31,12 @@ interface OutboxOp {
 }
 
 const isNetworkError = (e: unknown) =>
-  e instanceof TypeError || /Failed to fetch|NetworkError|Load failed|fetch failed/i.test(String((e as Error)?.message ?? e));
+  e instanceof TypeError ||
+  /Failed to fetch|NetworkError|Load failed|fetch failed/i.test(String((e as Error)?.message ?? e));
 
-function toUser(u: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null | undefined): AppUser | null {
+function toUser(
+  u: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null | undefined,
+): AppUser | null {
   if (!u) return null;
   return {
     id: u.id,
@@ -145,7 +148,8 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       if (/JWT|expired|not authenticated|401/i.test(msg) || res.error.code === 'PGRST301') {
         throw new BackendError('Your session expired. Please sign in again.', 'auth');
       }
-      if (isNetworkError(msg)) throw new BackendError("You're offline — we'll sync when you're back.", 'offline');
+      if (isNetworkError(msg))
+        throw new BackendError("You're offline — we'll sync when you're back.", 'offline');
       throw new BackendError(msg, 'server');
     }
     return res.data;
@@ -161,7 +165,8 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
   };
   const saveOutbox = (ops: OutboxOp[]) => localStorage.setItem(OUTBOX, JSON.stringify(ops));
   async function apply(op: OutboxOp) {
-    if (op.op === 'upsert') check(await sb.from(op.table).upsert(op.row!, op.key ? { onConflict: op.key } : undefined));
+    if (op.op === 'upsert')
+      check(await sb.from(op.table).upsert(op.row!, op.key ? { onConflict: op.key } : undefined));
     else check(await sb.from(op.table).delete().eq('id', op.id!));
   }
   async function write(op: OutboxOp) {
@@ -203,7 +208,8 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       return v;
     } catch (e) {
       const hit = localStorage.getItem(k);
-      if (hit && (isNetworkError(e) || (e instanceof BackendError && e.code !== 'auth'))) return JSON.parse(hit) as T;
+      if (hit && (isNetworkError(e) || (e instanceof BackendError && e.code !== 'auth')))
+        return JSON.parse(hit) as T;
       throw e;
     }
   }
@@ -223,7 +229,16 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     });
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
-      const code = j.code === 'disabled' ? 'disabled' : j.code === 'quota' ? 'quota' : res.status === 401 ? 'auth' : j.code === 'viewer' ? 'viewer' : 'server';
+      const code =
+        j.code === 'disabled'
+          ? 'disabled'
+          : j.code === 'quota'
+            ? 'quota'
+            : res.status === 401
+              ? 'auth'
+              : j.code === 'viewer'
+                ? 'viewer'
+                : 'server';
       throw new BackendError(j.error || `Server error ${res.status}`, code);
     }
     const ct = res.headers.get('content-type') ?? '';
@@ -272,7 +287,11 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       return cached(`global:${!!opts?.includeUnpublished}`, async () => {
         const out: GlobalVenue[] = [];
         for (let from = 0; ; from += 1000) {
-          let q = sb.from('global_venues').select('*').order('name').range(from, from + 999);
+          let q = sb
+            .from('global_venues')
+            .select('*')
+            .order('name')
+            .range(from, from + 999);
           if (!opts?.includeUnpublished) q = q.eq('published', true);
           const rows = check(await q) as Row[];
           out.push(...rows.map(globalFromRow));
@@ -288,7 +307,8 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     async deleteGlobal(id) {
       check(await sb.from('global_venues').delete().eq('id', id));
     },
-    listMine: () => cached('mine', async () => (check(await sb.from('user_venues').select('*')) as Row[]).map(mineFromRow)),
+    listMine: () =>
+      cached('mine', async () => (check(await sb.from('user_venues').select('*')) as Row[]).map(mineFromRow)),
     async saveMine(v) {
       const row = mineToRow({ ...v, ownerId: uid() });
       await write({ table: 'user_venues', op: 'upsert', row });
@@ -296,15 +316,27 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     },
     async saveMineBulk(vs) {
       const rows = vs.map((v) => mineToRow({ ...v, ownerId: uid() }));
-      for (let i = 0; i < rows.length; i += 200) check(await sb.from('user_venues').upsert(rows.slice(i, i + 200)));
+      for (let i = 0; i < rows.length; i += 200)
+        check(await sb.from('user_venues').upsert(rows.slice(i, i + 200)));
     },
     deleteMine: (id) => write({ table: 'user_venues', op: 'delete', id }),
-    listNotes: () => cached('notes', async () => (check(await sb.from('venue_notes').select('*')) as Row[]).map(noteFromRow)),
+    listNotes: () =>
+      cached('notes', async () =>
+        (check(await sb.from('venue_notes').select('*')) as Row[]).map(noteFromRow),
+      ),
     async saveNote(n) {
       await write({
         table: 'venue_notes',
         op: 'upsert',
-        row: { id: n.id, owner_id: uid(), venue_id: n.venueId, kind: n.kind, html: n.html, pinned: n.pinned, created_at: n.createdAt },
+        row: {
+          id: n.id,
+          owner_id: uid(),
+          venue_id: n.venueId,
+          kind: n.kind,
+          html: n.html,
+          pinned: n.pinned,
+          created_at: n.createdAt,
+        },
       });
       return n;
     },
@@ -315,13 +347,25 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         return (r?.data as never) ?? null;
       });
     },
-    saveProfile: (p) => write({ table: 'wedding_profiles', op: 'upsert', row: { owner_id: uid(), data: p }, key: 'owner_id' }),
-    listDocuments: async () => (check(await sb.from('documents').select('id,owner_id,venue_id,filename,mime_type,size_bytes,sha256,storage_path,page_count,created_at')) as Row[]).map(docFromRow),
+    saveProfile: (p) =>
+      write({ table: 'wedding_profiles', op: 'upsert', row: { owner_id: uid(), data: p }, key: 'owner_id' }),
+    listDocuments: async () =>
+      (
+        check(
+          await sb
+            .from('documents')
+            .select(
+              'id,owner_id,venue_id,filename,mime_type,size_bytes,sha256,storage_path,page_count,created_at',
+            ),
+        ) as Row[]
+      ).map(docFromRow),
     async uploadDocument(file, meta) {
       const id = crypto.randomUUID();
       const safe = meta.filename.replace(/[^\w.-]+/g, '_').slice(-120);
       const path = `${uid()}/${id}/${safe}`;
-      check(await sb.storage.from('documents').upload(path, file, { contentType: meta.mimeType, upsert: false }));
+      check(
+        await sb.storage.from('documents').upload(path, file, { contentType: meta.mimeType, upsert: false }),
+      );
       const row = check(
         await sb
           .from('documents')
@@ -343,7 +387,16 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       return docFromRow(row);
     },
     async updateDocument(d) {
-      check(await sb.from('documents').update({ venue_id: d.venueId ?? null, page_count: d.pageCount ?? null, extracted_text: d.extractedText ?? null }).eq('id', d.id));
+      check(
+        await sb
+          .from('documents')
+          .update({
+            venue_id: d.venueId ?? null,
+            page_count: d.pageCount ?? null,
+            extracted_text: d.extractedText ?? null,
+          })
+          .eq('id', d.id),
+      );
     },
     async getDocumentBlob(d) {
       return check(await sb.storage.from('documents').download(d.storagePath!)) as Blob;
@@ -353,7 +406,11 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       check(await sb.from('documents').delete().eq('id', d.id));
     },
     listJobs: async () =>
-      (check(await sb.from('import_jobs').select('*').order('created_at', { ascending: false }).limit(20)) as Row[]).map((r) => ({
+      (
+        check(
+          await sb.from('import_jobs').select('*').order('created_at', { ascending: false }).limit(20),
+        ) as Row[]
+      ).map((r) => ({
         id: r.id as string,
         ownerId: r.owner_id as string,
         kind: r.kind as ImportJob['kind'],
@@ -371,29 +428,58 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       write({
         table: 'import_jobs',
         op: 'upsert',
-        row: { id: j.id, owner_id: uid(), kind: j.kind, label: j.label, status: j.status, progress: j.progress, total: j.total, processed: j.processed, errors: j.errors, results: j.results },
+        row: {
+          id: j.id,
+          owner_id: uid(),
+          kind: j.kind,
+          label: j.label,
+          status: j.status,
+          progress: j.progress,
+          total: j.total,
+          processed: j.processed,
+          errors: j.errors,
+          results: j.results,
+        },
       }),
     listCompareSets: async () =>
-      (check(await sb.from('compare_sets').select('*')) as Row[]).map(
-        (r): CompareSet => ({ id: r.id as string, ownerId: r.owner_id as string, name: r.name as string, venueRefs: r.venue_refs as string[], createdAt: r.created_at as string }),
-      ),
+      (check(await sb.from('compare_sets').select('*')) as Row[]).map((r): CompareSet => ({
+        id: r.id as string,
+        ownerId: r.owner_id as string,
+        name: r.name as string,
+        venueRefs: r.venue_refs as string[],
+        createdAt: r.created_at as string,
+      })),
     async saveCompareSet(s) {
-      check(await sb.from('compare_sets').upsert({ id: s.id, owner_id: uid(), name: s.name, venue_refs: s.venueRefs }));
+      check(
+        await sb
+          .from('compare_sets')
+          .upsert({ id: s.id, owner_id: uid(), name: s.name, venue_refs: s.venueRefs }),
+      );
       return s;
     },
     deleteCompareSet: (id) => write({ table: 'compare_sets', op: 'delete', id }),
     listPresets: async () =>
-      (check(await sb.from('filter_presets').select('*')) as Row[]).map(
-        (r): FilterPreset => ({ id: r.id as string, ownerId: r.owner_id as string, name: r.name as string, scope: r.scope as FilterPreset['scope'], filters: r.filters as FilterPreset['filters'], createdAt: r.created_at as string }),
-      ),
+      (check(await sb.from('filter_presets').select('*')) as Row[]).map((r): FilterPreset => ({
+        id: r.id as string,
+        ownerId: r.owner_id as string,
+        name: r.name as string,
+        scope: r.scope as FilterPreset['scope'],
+        filters: r.filters as FilterPreset['filters'],
+        createdAt: r.created_at as string,
+      })),
     async savePreset(p) {
-      check(await sb.from('filter_presets').upsert({ id: p.id, owner_id: uid(), name: p.name, scope: p.scope, filters: p.filters }));
+      check(
+        await sb
+          .from('filter_presets')
+          .upsert({ id: p.id, owner_id: uid(), name: p.name, scope: p.scope, filters: p.filters }),
+      );
       return p;
     },
     deletePreset: (id) => write({ table: 'filter_presets', op: 'delete', id }),
     geocode: (q) => geocode(q, (query) => fn('geocode', { q: query })),
     aiParse: (pages, filename) => fn<AiExtraction>('ai', { action: 'parse', pages, filename }),
-    aiEnrich: async (venue, fields) => (await fn<{ proposals: AiFieldValue[] }>('ai', { action: 'enrich', venue, fields })).proposals,
+    aiEnrich: async (venue, fields) =>
+      (await fn<{ proposals: AiFieldValue[] }>('ai', { action: 'enrich', venue, fields })).proposals,
     async fetchDocument(link) {
       const r = await fn<Blob | { redirectTo?: string }>('fetch-document', { url: link });
       if (r instanceof Blob) return r;
@@ -403,7 +489,8 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     async deleteAccount() {
       await fn('delete-account', { confirm: 'DELETE' });
       await sb.auth.signOut();
-      for (const k of Object.keys(localStorage)) if (k.startsWith(CACHE) || k === OUTBOX) localStorage.removeItem(k);
+      for (const k of Object.keys(localStorage))
+        if (k.startsWith(CACHE) || k === OUTBOX) localStorage.removeItem(k);
     },
   };
   return backend;

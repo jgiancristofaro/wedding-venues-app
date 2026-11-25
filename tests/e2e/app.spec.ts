@@ -14,7 +14,9 @@ test('browse Discover signed-out, filter, and see how a price was built', async 
   await expect(page.getByText(/38 of 38 venues/)).toBeVisible();
   await page.getByPlaceholder('Search by name, town, style…').fill('larkspur');
   await expect(page.getByText(/1 of 38 venues/)).toBeVisible();
-  await card(page, 'The Larkspur Rooms').getByRole('button', { name: /How we got this/ }).click();
+  await card(page, 'The Larkspur Rooms')
+    .getByRole('button', { name: /How we got this/ })
+    .click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByText('Estimated all-in total')).toBeVisible();
   await expect(dialog.getByText('Assumptions')).toBeVisible();
@@ -29,16 +31,22 @@ test('browse Discover signed-out, filter, and see how a price was built', async 
 
 test('heart prompts sign-in, then saves after signing in (action preserved), with undo', async ({ page }) => {
   await page.goto('/');
-  await card(page, 'Bramble & Bay').getByRole('button', { name: /Save Bramble & Bay/ }).click();
+  await card(page, 'Bramble & Bay')
+    .getByRole('button', { name: /Save Bramble & Bay/ })
+    .click();
   await expect(page.getByText('Sign in to save venues to your private library.')).toBeVisible();
   await fillSignIn(page, 'alice@example.com');
   await expect(page.getByText('Saved Bramble & Bay to My Venues')).toBeVisible();
-  await expect(card(page, 'Bramble & Bay').getByRole('button', { name: /Remove Bramble & Bay/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    card(page, 'Bramble & Bay').getByRole('button', { name: /Remove Bramble & Bay/ }),
+  ).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('link', { name: 'My Venues' }).first().click();
   await expect(card(page, 'Bramble & Bay')).toBeVisible();
   // undo
   await page.goto('/');
-  await card(page, 'Heron Hall').getByRole('button', { name: /Save Heron Hall/ }).click();
+  await card(page, 'Heron Hall')
+    .getByRole('button', { name: /Save Heron Hall/ })
+    .click();
   await page.getByRole('button', { name: 'Undo' }).click();
   await page.getByRole('link', { name: 'My Venues' }).first().click();
   await expect(card(page, 'Bramble & Bay')).toBeVisible();
@@ -48,7 +56,9 @@ test('heart prompts sign-in, then saves after signing in (action preserved), wit
 test('one user cannot see another user’s venues', async ({ page }) => {
   await page.goto('/');
   await signIn(page, 'alice@example.com');
-  await card(page, 'Willowmere Farm').getByRole('button', { name: /Save Willowmere Farm/ }).click();
+  await card(page, 'Willowmere Farm')
+    .getByRole('button', { name: /Save Willowmere Farm/ })
+    .click();
   await page.goto('/mine');
   await expect(card(page, 'Willowmere Farm')).toBeVisible();
   await signOut(page);
@@ -102,7 +112,9 @@ test('shortlist reorder with buttons and keyboard persists', async ({ page }) =>
   await page.goto('/');
   await signIn(page);
   for (const n of ['Bramble & Bay', 'Heron Hall', 'Clementine Hall']) {
-    await card(page, n).getByRole('button', { name: new RegExp(`Save ${n}`) }).click();
+    await card(page, n)
+      .getByRole('button', { name: new RegExp(`Save ${n}`) })
+      .click();
     await expect(page.getByText(`Saved ${n} to My Venues`)).toBeVisible();
   }
   for (const n of ['Bramble & Bay', 'Heron Hall', 'Clementine Hall']) {
@@ -132,8 +144,12 @@ test('shortlist reorder with buttons and keyboard persists', async ({ page }) =>
 
 test('compare 3 venues (button + drag to tray), differences only', async ({ page }) => {
   await page.goto('/');
-  await card(page, 'The Larkspur Rooms').getByRole('button', { name: /Add The Larkspur Rooms to compare/ }).click();
-  await card(page, 'Heron Hall').getByRole('button', { name: /Add Heron Hall to compare/ }).click();
+  await card(page, 'The Larkspur Rooms')
+    .getByRole('button', { name: /Add The Larkspur Rooms to compare/ })
+    .click();
+  await card(page, 'Heron Hall')
+    .getByRole('button', { name: /Add Heron Hall to compare/ })
+    .click();
   // drag a card onto the tray
   const src = card(page, 'Willowmere Farm').locator('img').first();
   await src.scrollIntoViewIfNeeded();
@@ -172,7 +188,9 @@ test('editing pricing assumptions updates totals live', async ({ page }) => {
 test('edit pricing rules on a saved venue and see the total change', async ({ page }) => {
   await page.goto('/');
   await signIn(page);
-  await card(page, 'Greywater Boathouse').getByRole('button', { name: /Save Greywater Boathouse/ }).click();
+  await card(page, 'Greywater Boathouse')
+    .getByRole('button', { name: /Save Greywater Boathouse/ })
+    .click();
   await page.goto('/mine');
   await card(page, 'Greywater Boathouse').getByRole('link', { name: 'Greywater Boathouse' }).click();
   const total = page.getByTestId('detail-total');
@@ -189,9 +207,15 @@ test('edit pricing rules on a saved venue and see the total change', async ({ pa
 test('export XLSX, CSV and JSON backup', async ({ page }) => {
   await page.goto('/');
   await signIn(page);
-  await card(page, 'Bramble & Bay').getByRole('button', { name: /Save Bramble & Bay/ }).click();
+  await card(page, 'Bramble & Bay')
+    .getByRole('button', { name: /Save Bramble & Bay/ })
+    .click();
   await page.goto('/settings');
-  for (const [id, ext] of [['export-xlsx', '.xlsx'], ['export-csv', '.csv'], ['export-json', '.json']]) {
+  for (const [id, ext] of [
+    ['export-xlsx', '.xlsx'],
+    ['export-csv', '.csv'],
+    ['export-json', '.json'],
+  ]) {
     const [dl] = await Promise.all([page.waitForEvent('download'), page.getByTestId(id).click()]);
     expect(dl.suggestedFilename()).toContain(ext);
   }
@@ -200,7 +224,9 @@ test('export XLSX, CSV and JSON backup', async ({ page }) => {
 test('notes: rich text, pros/cons, pin', async ({ page }) => {
   await page.goto('/');
   await signIn(page);
-  await card(page, 'Heron Hall').getByRole('button', { name: /Save Heron Hall/ }).click();
+  await card(page, 'Heron Hall')
+    .getByRole('button', { name: /Save Heron Hall/ })
+    .click();
   await page.goto('/mine');
   await card(page, 'Heron Hall').getByRole('link', { name: 'Heron Hall' }).click();
   await page.getByTestId('note-editor').fill('Loved the velvet lounge');
@@ -217,9 +243,33 @@ test('unsupported and oversized files are handled gracefully', async ({ page }) 
   await page.goto('/');
   await signIn(page);
   await page.goto('/import?mode=sheet');
-  await page.getByTestId('file-input').setInputFiles({ name: 'broken.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from('not a spreadsheet') });
+  await page.getByTestId('file-input').setInputFiles({
+    name: 'broken.xlsx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    buffer: Buffer.from('not a spreadsheet'),
+  });
   await expect(page.getByRole('alert')).toContainText(/couldn’t read that spreadsheet|No rows/);
   await page.goto('/import?mode=doc');
-  await page.getByTestId('file-input').setInputFiles({ name: 'broken.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-garbage') });
+  await page
+    .getByTestId('file-input')
+    .setInputFiles({ name: 'broken.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-garbage') });
   await expect(page.getByRole('alert')).toContainText(/could not be opened/);
+});
+
+test('dropping a file anywhere shows the overlay and routes to the right importer', async ({ page }) => {
+  await page.goto('/');
+  await signIn(page);
+  const bytes = [...(await import('node:fs')).readFileSync(fixture('booklet-seabright-pavilion.pdf'))];
+  const dt = await page.evaluateHandle((b) => {
+    const d = new DataTransfer();
+    d.items.add(new File([new Uint8Array(b)], 'seabright.pdf', { type: 'application/pdf' }));
+    return d;
+  }, bytes);
+  await page.dispatchEvent('main', 'dragenter', { dataTransfer: dt });
+  await expect(page.getByTestId('drop-overlay')).toBeVisible();
+  await page.dispatchEvent('main', 'drop', { dataTransfer: dt });
+  await expect(page.getByTestId('review-screen')).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId('review-screen').getByLabel('Venue name', { exact: true })).toHaveValue(
+    'Seabright Pavilion',
+  );
 });

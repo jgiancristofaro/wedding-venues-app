@@ -1,5 +1,23 @@
-import { BookmarkPlus, LayoutGrid, Map as MapIcon, Search, SlidersHorizontal, Table2, Trash2, X } from 'lucide-react';
-import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  BookmarkPlus,
+  LayoutGrid,
+  Map as MapIcon,
+  Search,
+  SlidersHorizontal,
+  Table2,
+  Trash2,
+  X,
+} from 'lucide-react';
+import {
+  lazy,
+  Suspense,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { applyFilters, buildRows, type Row } from '../domain/filtering';
 import { EMPTY_FILTERS, type FilterState, type VenueView } from '../domain/types';
@@ -53,7 +71,9 @@ function Progressive({ rows, render }: { rows: Row[]; render: (r: Row) => ReactN
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver((es) => es[0].isIntersecting && setN((x) => x + 36), { rootMargin: '800px' });
+    const io = new IntersectionObserver((es) => es[0].isIntersecting && setN((x) => x + 36), {
+      rootMargin: '800px',
+    });
     io.observe(el);
     return () => io.disconnect();
   }, [rows]);
@@ -65,7 +85,19 @@ function Progressive({ rows, render }: { rows: Row[]; render: (r: Row) => ReactN
   );
 }
 
-export function VenueBrowser({ scope, views, loading, header, emptyState }: { scope: 'discover' | 'mine'; views: VenueView[]; loading?: boolean; header?: ReactNode; emptyState?: ReactNode }) {
+export function VenueBrowser({
+  scope,
+  views,
+  loading,
+  header,
+  emptyState,
+}: {
+  scope: 'discover' | 'mine';
+  views: VenueView[];
+  loading?: boolean;
+  header?: ReactNode;
+  emptyState?: ReactNode;
+}) {
   const profile = useApp((s) => s.profile);
   const allPresets = useApp((s) => s.presets);
   const presets = useMemo(() => allPresets.filter((p) => p.scope === scope), [allPresets, scope]);
@@ -95,12 +127,24 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
     () =>
       filtered
         .filter((r) => r.v.fields.lat != null && r.v.fields.lng != null)
-        .map((r) => ({ ref: r.v.ref, name: r.v.fields.name, lat: r.v.fields.lat!, lng: r.v.fields.lng!, total: r.e.total, href: venueHref(r.v), area: r.v.fields.area })),
+        .map((r) => ({
+          ref: r.v.ref,
+          name: r.v.fields.name,
+          lat: r.v.fields.lat!,
+          lng: r.v.fields.lng!,
+          total: r.e.total,
+          href: venueHref(r.v),
+          area: r.v.fields.area,
+        })),
     [filtered],
   );
   const nActive = activeFilterCount(filters);
   const quick = (k: 'fitsGuests' | 'ceremonyOnSite' | 'accommodations', label: string) => (
-    <button className={cx('chip', filters[k] && 'chip-on')} aria-pressed={filters[k]} onClick={() => setFilters({ ...filters, [k]: !filters[k] })}>
+    <button
+      className={cx('chip', filters[k] && 'chip-on')}
+      aria-pressed={filters[k]}
+      onClick={() => setFilters({ ...filters, [k]: !filters[k] })}
+    >
       {label}
     </button>
   );
@@ -119,13 +163,22 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
             type="search"
           />
         </label>
-        <button className={cx('chip', nActive > 0 && 'chip-on')} onClick={() => setFiltersOpen(true)} aria-haspopup="dialog">
+        <button
+          className={cx('chip', nActive > 0 && 'chip-on')}
+          onClick={() => setFiltersOpen(true)}
+          aria-haspopup="dialog"
+        >
           <SlidersHorizontal size={15} /> Filters{nActive ? ` · ${nActive}` : ''}
         </button>
         <label className="sr-only" htmlFor={`sort-${scope}`}>
           Sort by
         </label>
-        <select id={`sort-${scope}`} className="chip pr-2 appearance-none cursor-pointer" value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value as FilterState['sort'] })}>
+        <select
+          id={`sort-${scope}`}
+          className="chip pr-2 appearance-none cursor-pointer"
+          value={filters.sort}
+          onChange={(e) => setFilters({ ...filters, sort: e.target.value as FilterState['sort'] })}
+        >
           {SORTS.filter((s) => scope === 'mine' || !s.mine).map((s) => (
             <option key={s.value} value={s.value}>
               Sort: {s.label}
@@ -153,7 +206,12 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
           <button
             className={cx('chip', filters.totalMax === profile.budget && 'chip-on')}
             aria-pressed={filters.totalMax === profile.budget}
-            onClick={() => setFilters({ ...filters, totalMax: filters.totalMax === profile.budget ? undefined : profile.budget })}
+            onClick={() =>
+              setFilters({
+                ...filters,
+                totalMax: filters.totalMax === profile.budget ? undefined : profile.budget,
+              })
+            }
           >
             Within budget ({money(profile.budget, { compact: true })})
           </button>
@@ -163,7 +221,11 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
             <button onClick={() => setFilters({ ...p.filters })} className="hover:underline">
               {p.name}
             </button>
-            <button className="h-7 w-7 inline-flex items-center justify-center rounded-full hover:bg-sunken" aria-label={`Delete preset ${p.name}`} onClick={() => void deletePreset(p.id)}>
+            <button
+              className="h-7 w-7 inline-flex items-center justify-center rounded-full hover:bg-sunken"
+              aria-label={`Delete preset ${p.name}`}
+              onClick={() => void deletePreset(p.id)}
+            >
               <Trash2 size={13} />
             </button>
           </span>
@@ -177,7 +239,10 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
           <BookmarkPlus size={15} /> Save filters
         </button>
         {nActive > 0 && (
-          <button className="chip text-muted" onClick={() => setFilters({ ...EMPTY_FILTERS, sort: filters.sort })}>
+          <button
+            className="chip text-muted"
+            onClick={() => setFilters({ ...EMPTY_FILTERS, sort: filters.sort })}
+          >
             <X size={14} /> Clear
           </button>
         )}
@@ -187,7 +252,9 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
 
   const count = (
     <p className="text-sm text-muted my-4" aria-live="polite">
-      {loading ? 'Loading venues…' : `${filtered.length} of ${views.length} venues · priced for ${profile.guestCount} guests`}
+      {loading
+        ? 'Loading venues…'
+        : `${filtered.length} of ${views.length} venues · priced for ${profile.guestCount} guests`}
     </p>
   );
 
@@ -204,7 +271,17 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
     body = emptyState;
   } else if (!filtered.length) {
     body = (
-      <Empty title="No venues match these filters" action={<button className="btn-secondary" onClick={() => setFilters({ ...EMPTY_FILTERS, sort: filters.sort })}>Clear filters</button>}>
+      <Empty
+        title="No venues match these filters"
+        action={
+          <button
+            className="btn-secondary"
+            onClick={() => setFilters({ ...EMPTY_FILTERS, sort: filters.sort })}
+          >
+            Clear filters
+          </button>
+        }
+      >
         Try widening your price range or removing a style.
       </Empty>
     );
@@ -213,7 +290,9 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
   } else if (mode === 'split') {
     body = (
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-6">
-        <div className={cx('grid gap-x-5 gap-y-8 sm:grid-cols-2 content-start', mobileMap && 'hidden lg:grid')}>
+        <div
+          className={cx('grid gap-x-5 gap-y-8 sm:grid-cols-2 content-start', mobileMap && 'hidden lg:grid')}
+        >
           <Progressive
             rows={filtered}
             render={(r) => (
@@ -230,15 +309,22 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
             </Suspense>
           </div>
         </div>
-        <button className="lg:hidden fixed bottom-[148px] left-1/2 -translate-x-1/2 z-40 btn-primary shadow-lift" onClick={() => setMobileMap(!mobileMap)}>
-          {mobileMap ? <LayoutGrid size={16} /> : <MapIcon size={16} />} {mobileMap ? 'Show list' : 'Show map'}
+        <button
+          className="lg:hidden fixed bottom-[148px] left-1/2 -translate-x-1/2 z-40 btn-primary shadow-lift"
+          onClick={() => setMobileMap(!mobileMap)}
+        >
+          {mobileMap ? <LayoutGrid size={16} /> : <MapIcon size={16} />}{' '}
+          {mobileMap ? 'Show list' : 'Show map'}
         </button>
       </div>
     );
   } else {
     body = (
       <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <Progressive rows={filtered} render={(r) => <VenueCard key={r.v.ref} v={r.v} profile={profile} distance={r.dist} />} />
+        <Progressive
+          rows={filtered}
+          render={(r) => <VenueCard key={r.v.ref} v={r.v} profile={profile} distance={r.dist} />}
+        />
       </div>
     );
   }
@@ -268,7 +354,14 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
             className="btn-primary"
             disabled={!presetName.trim()}
             onClick={() => {
-              void savePreset({ id: crypto.randomUUID(), ownerId: user?.id ?? '', name: presetName.trim(), scope, filters, createdAt: new Date().toISOString() });
+              void savePreset({
+                id: crypto.randomUUID(),
+                ownerId: user?.id ?? '',
+                name: presetName.trim(),
+                scope,
+                filters,
+                createdAt: new Date().toISOString(),
+              });
               setPresetName('');
               setPresetOpen(false);
             }}
@@ -280,7 +373,14 @@ export function VenueBrowser({ scope, views, loading, header, emptyState }: { sc
         <label className="text-sm font-medium" htmlFor="preset-name">
           Preset name
         </label>
-        <input id="preset-name" className="input mt-1" autoFocus value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="e.g. Hudson Valley barns under $60k" />
+        <input
+          id="preset-name"
+          className="input mt-1"
+          autoFocus
+          value={presetName}
+          onChange={(e) => setPresetName(e.target.value)}
+          placeholder="e.g. Hudson Valley barns under $60k"
+        />
       </Modal>
     </div>
   );
@@ -313,15 +413,23 @@ function VenueTable({ rows, scope }: { rows: Row[]; scope: 'discover' | 'mine' }
           {rows.slice(0, n).map((r) => (
             <tr key={r.v.ref} className="border-t border-line/70 hover:bg-sunken/40">
               <td className="px-1">
-                <HeartButton v={r.v} className="[&_svg]:!text-muted [&_svg]:fill-transparent [&[aria-pressed=true]_svg]:!text-rose [&[aria-pressed=true]_svg]:!fill-rose" size={18} />
+                <HeartButton
+                  v={r.v}
+                  className="[&_svg]:!text-muted [&_svg]:fill-transparent [&[aria-pressed=true]_svg]:!text-rose [&[aria-pressed=true]_svg]:!fill-rose"
+                  size={18}
+                />
               </td>
               <td className="p-3 font-medium">
                 <Link to={venueHref(r.v)} className="hover:underline">
                   {r.v.fields.name}
                 </Link>
-                {r.v.isSample && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted">sample</span>}
+                {r.v.isSample && (
+                  <span className="ml-2 text-[10px] uppercase tracking-wider text-muted">sample</span>
+                )}
               </td>
-              <td className="p-3 text-muted">{[r.v.fields.area, r.v.fields.region].filter(Boolean).join(', ')}</td>
+              <td className="p-3 text-muted">
+                {[r.v.fields.area, r.v.fields.region].filter(Boolean).join(', ')}
+              </td>
               <td className="p-3 text-right tabular-nums">{r.v.fields.capacitySeated ?? '—'}</td>
               <td className="p-3 text-right tabular-nums font-medium">{money(r.e.total)}</td>
               <td className="p-3 text-right tabular-nums">{money(r.e.perGuest)}</td>
@@ -331,7 +439,10 @@ function VenueTable({ rows, scope }: { rows: Row[]; scope: 'discover' | 'mine' }
               <td className="p-3 capitalize text-muted">{r.v.fields.setting ?? '—'}</td>
               {scope === 'mine' && <td className="p-3 capitalize">{r.v.mine?.status}</td>}
               <td className="p-2">
-                <CompareToggle v={r.v} className="!bg-sunken !text-ink aria-pressed:!bg-ink aria-pressed:!text-bg" />
+                <CompareToggle
+                  v={r.v}
+                  className="!bg-sunken !text-ink aria-pressed:!bg-ink aria-pressed:!text-bg"
+                />
               </td>
             </tr>
           ))}

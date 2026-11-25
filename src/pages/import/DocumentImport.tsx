@@ -8,7 +8,15 @@ import { PricingEditor } from '../../components/PricingEditor';
 import { PricingPlayground } from '../../components/PricingPlayground';
 import { Tooltip } from '../../components/ui';
 import { FIELD_DEFS, formatFieldValue, isEmptyValue } from '../../domain/fields';
-import type { FieldKey, FieldProvenance, GlobalVenue, Photo, SourceInfo, UserVenue, VenueFields } from '../../domain/types';
+import type {
+  FieldKey,
+  FieldProvenance,
+  GlobalVenue,
+  Photo,
+  SourceInfo,
+  UserVenue,
+  VenueFields,
+} from '../../domain/types';
 import { blankUserVenue } from '../../domain/venues';
 import { DUPLICATE_THRESHOLD, findDuplicates } from '../../lib/dedupe';
 import { cx } from '../../lib/format';
@@ -34,7 +42,11 @@ function fromInput(key: FieldKey, s: string): unknown {
   if (!s.trim()) return undefined;
   if (def.type === 'number') return Number(s.replace(/[^\d.]/g, '')) || undefined;
   if (def.type === 'bool') return /^(y|yes|true)/i.test(s);
-  if (def.type === 'tags') return s.split(',').map((x) => x.trim()).filter(Boolean);
+  if (def.type === 'tags')
+    return s
+      .split(',')
+      .map((x) => x.trim())
+      .filter(Boolean);
   if (def.type === 'spaces') {
     try {
       return JSON.parse(s);
@@ -46,7 +58,21 @@ function fromInput(key: FieldKey, s: string): unknown {
 }
 
 /** Review screen: document on one side, extracted (editable) suggestions on the other. Nothing saves until confirmed. */
-function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocResult; blob?: Blob; venueId?: string; target: 'mine' | 'global'; provenance?: SourceInfo; onReset: () => void }) {
+function Review({
+  doc,
+  blob,
+  venueId,
+  target,
+  provenance,
+  onReset,
+}: {
+  doc: DocResult;
+  blob?: Blob;
+  venueId?: string;
+  target: 'mine' | 'global';
+  provenance?: SourceInfo;
+  onReset: () => void;
+}) {
   const mine = useApp((s) => s.mine);
   const globals = useApp((s) => s.globals);
   const profile = useApp((s) => s.profile);
@@ -65,10 +91,18 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
   const existing = venueId ? mine.find((m) => m.id === venueId) : undefined;
   const nameGuess = (doc.extraction.fields.name?.value as string) ?? '';
   const dupes = useMemo(
-    () => (nameGuess && !existing ? findDuplicates({ ref: 'new', name: nameGuess }, mine.map((m) => ({ ref: `u:${m.id}`, name: m.fields.name, area: m.fields.area }))) : []),
+    () =>
+      nameGuess && !existing
+        ? findDuplicates(
+            { ref: 'new', name: nameGuess },
+            mine.map((m) => ({ ref: `u:${m.id}`, name: m.fields.name, area: m.fields.area })),
+          )
+        : [],
     [nameGuess, existing, mine],
   );
-  const [targetId, setTargetId] = useState<string>(existing?.id ?? (dupes[0] && dupes[0].score >= DUPLICATE_THRESHOLD ? dupes[0].ref.slice(2) : ''));
+  const [targetId, setTargetId] = useState<string>(
+    existing?.id ?? (dupes[0] && dupes[0].score >= DUPLICATE_THRESHOLD ? dupes[0].ref.slice(2) : ''),
+  );
   const targetVenue = mine.find((m) => m.id === targetId);
 
   const initFields = (): Record<string, FieldState> => {
@@ -76,7 +110,11 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
     for (const f of FIELD_DEFS) {
       const sug = doc.extraction.fields[f.key];
       const cur = targetVenue?.fields[f.key];
-      out[f.key] = { value: sug?.value, s: sug ? { ...sug, source: 'heuristic' } : undefined, accept: !!sug && (isEmptyValue(cur) || !targetVenue) };
+      out[f.key] = {
+        value: sug?.value,
+        s: sug ? { ...sug, source: 'heuristic' } : undefined,
+        accept: !!sug && (isEmptyValue(cur) || !targetVenue),
+      };
     }
     return out;
   };
@@ -89,18 +127,34 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
   const runAi = async () => {
     setAiBusy(true);
     try {
-      const r = await backend.aiParse(doc.pages.map((p) => p.text), doc.filename);
+      const r = await backend.aiParse(
+        doc.pages.map((p) => p.text),
+        doc.filename,
+      );
       setFields((prev) => {
         const next = { ...prev };
         for (const fv of r.fields) {
           if (!next[fv.field]) continue;
-          next[fv.field] = { value: fv.value, accept: true, s: { value: fv.value, confidence: fv.confidence, page: fv.page, snippet: fv.snippet, source: 'ai' } };
+          next[fv.field] = {
+            value: fv.value,
+            accept: true,
+            s: {
+              value: fv.value,
+              confidence: fv.confidence,
+              page: fv.page,
+              snippet: fv.snippet,
+              source: 'ai',
+            },
+          };
         }
         return next;
       });
       const p = sanitizePricing(r.pricing);
       if (p.components.length) setPricing(p);
-      s.toast({ text: `AI read ${r.fields.length} fields${r.cached ? ' (cached)' : ''}. Review before saving.`, tone: 'success' });
+      s.toast({
+        text: `AI read ${r.fields.length} fields${r.cached ? ' (cached)' : ''}. Review before saving.`,
+        tone: 'success',
+      });
     } catch (e) {
       s.handleError(e, 'AI parsing failed — the suggestions below still work');
     } finally {
@@ -122,7 +176,9 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
         confidence: st.s?.confidence,
         at: now,
       });
-      const photos: Photo[] = doc.photos.filter((_, i) => photoPick[i]).map((url) => ({ url, caption: `From ${doc.filename}`, source: 'document' }));
+      const photos: Photo[] = doc.photos
+        .filter((_, i) => photoPick[i])
+        .map((url) => ({ url, caption: `From ${doc.filename}`, source: 'document' }));
 
       if (target === 'global') {
         const g: GlobalVenue = {
@@ -144,14 +200,30 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
 
       let v: UserVenue;
       if (targetVenue) {
-        v = { ...targetVenue, fields: { ...targetVenue.fields, ...patch, photos: [...(targetVenue.fields.photos ?? []), ...photos] }, provenance: { ...targetVenue.provenance } };
+        v = {
+          ...targetVenue,
+          fields: {
+            ...targetVenue.fields,
+            ...patch,
+            photos: [...(targetVenue.fields.photos ?? []), ...photos],
+          },
+          provenance: { ...targetVenue.provenance },
+        };
       } else {
-        v = blankUserVenue(user.id, { name: (patch.name as string) || nameGuess || doc.filename.replace(/\.\w+$/, ''), ...patch, photos });
+        v = blankUserVenue(user.id, {
+          name: (patch.name as string) || nameGuess || doc.filename.replace(/\.\w+$/, ''),
+          ...patch,
+          photos,
+        });
       }
       for (const [k, st] of accepted) (v.provenance as Record<string, FieldProvenance>)[k] = prov(st);
       if (pricingAccept && pricing.components.length) {
         v.pricing = { ...pricing, currency: 'USD' };
-        v.provenance.pricing = { source: 'document', detail: `${doc.filename} (pricing suggestions, reviewed)`, at: now };
+        v.provenance.pricing = {
+          source: 'document',
+          detail: `${doc.filename} (pricing suggestions, reviewed)`,
+          at: now,
+        };
       }
       // geocode new venues
       if (v.fields.lat == null && (v.fields.address || v.fields.area)) {
@@ -164,17 +236,31 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
       }
       await s.saveVenue(v);
       if (blob) {
-        if (blob.size > MAX_UPLOAD_BYTES) s.toast({ text: 'The document is over 25 MB, so it wasn’t attached — the extracted details were saved.' });
+        if (blob.size > MAX_UPLOAD_BYTES)
+          s.toast({
+            text: 'The document is over 25 MB, so it wasn’t attached — the extracted details were saved.',
+          });
         else {
           try {
-            const rec = await backend.uploadDocument(blob, { venueId: v.id, filename: doc.filename, mimeType: doc.mimeType, size: blob.size, hash: doc.hash, pageCount: doc.pages.length, extractedText: doc.pages.map((p) => p.text) });
+            const rec = await backend.uploadDocument(blob, {
+              venueId: v.id,
+              filename: doc.filename,
+              mimeType: doc.mimeType,
+              size: blob.size,
+              hash: doc.hash,
+              pageCount: doc.pages.length,
+              extractedText: doc.pages.map((p) => p.text),
+            });
             s.addDocument(rec);
           } catch (e) {
             s.handleError(e, 'Saved the venue, but the document upload failed');
           }
         }
       }
-      s.toast({ text: targetVenue ? `Updated ${v.fields.name}` : `Created ${v.fields.name}`, tone: 'success' });
+      s.toast({
+        text: targetVenue ? `Updated ${v.fields.name}` : `Created ${v.fields.name}`,
+        tone: 'success',
+      });
       navigate(`/venue/u/${v.id}`);
     } catch (e) {
       s.handleError(e, 'Could not save');
@@ -183,7 +269,9 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
     }
   };
 
-  const visible = FIELD_DEFS.filter((f) => f.type !== 'photos' && (showAll || fields[f.key]?.s || (f.key === 'name' && !targetVenue)));
+  const visible = FIELD_DEFS.filter(
+    (f) => f.type !== 'photos' && (showAll || fields[f.key]?.s || (f.key === 'name' && !targetVenue)),
+  );
   const nAccepted = Object.values(fields).filter((f) => f.accept && !isEmptyValue(f.value)).length;
 
   return (
@@ -191,50 +279,95 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
       <div className="flex flex-wrap items-center gap-3">
         <FileText className="text-gold" />
         <h2 className="text-2xl">Review “{doc.filename}”</h2>
-        <span className="text-sm text-muted">{doc.pages.length} page(s){doc.pages.some((p) => p.source === 'ocr') ? ' · OCR used' : ''}</span>
-        <button className="btn-ghost btn-sm ml-auto" onClick={onReset}>Start over</button>
+        <span className="text-sm text-muted">
+          {doc.pages.length} page(s){doc.pages.some((p) => p.source === 'ocr') ? ' · OCR used' : ''}
+        </span>
+        <button className="btn-ghost btn-sm ml-auto" onClick={onReset}>
+          Start over
+        </button>
       </div>
       <div className="rounded-2xl bg-sunken p-4 text-sm flex gap-3">
         <Sparkles size={18} className="text-gold shrink-0" />
         <p>
-          These are <strong>suggestions</strong> read automatically from the document. Check each value against the page on the left — tap a source snippet to jump to it. Nothing is saved until you press Save.
+          These are <strong>suggestions</strong> read automatically from the document. Check each value
+          against the page on the left — tap a source snippet to jump to it. Nothing is saved until you press
+          Save.
         </p>
       </div>
       {doc.warnings.map((w) => (
-        <p key={w} className="text-sm text-warn flex gap-2"><AlertTriangle size={16} className="shrink-0" /> {w}</p>
+        <p key={w} className="text-sm text-warn flex gap-2">
+          <AlertTriangle size={16} className="shrink-0" /> {w}
+        </p>
       ))}
 
       <div className="grid lg:grid-cols-2 gap-6 items-start">
         <div className="lg:sticky lg:top-24">
-          <DocumentViewer blob={doc.kind === 'text' ? undefined : blob} mimeType={doc.kind === 'docx' ? 'text/plain' : doc.mimeType} text={doc.pages.map((p) => p.text)} page={page} onPage={setPage} height="72vh" />
+          <DocumentViewer
+            blob={doc.kind === 'text' ? undefined : blob}
+            mimeType={doc.kind === 'docx' ? 'text/plain' : doc.mimeType}
+            text={doc.pages.map((p) => p.text)}
+            page={page}
+            onPage={setPage}
+            height="72vh"
+          />
         </div>
         <div className="space-y-6">
           <div className="card p-4 space-y-3">
             {target === 'mine' ? (
               <>
-                <label className="text-sm font-medium block" htmlFor="review-target">Save to</label>
-                <select id="review-target" className="input" value={targetId} onChange={(e) => setTargetId(e.target.value)}>
+                <label className="text-sm font-medium block" htmlFor="review-target">
+                  Save to
+                </label>
+                <select
+                  id="review-target"
+                  className="input"
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
+                >
                   <option value="">A new venue</option>
                   {mine.map((m) => (
-                    <option key={m.id} value={m.id}>Update: {m.fields.name}</option>
+                    <option key={m.id} value={m.id}>
+                      Update: {m.fields.name}
+                    </option>
                   ))}
                 </select>
-                {!targetId && dupes[0] && <p className="text-xs text-gold">Looks similar to “{dupes[0].name}” in your library — choose it above to update it instead.</p>}
-                {!targetId && globals.some((g) => g.fields.name === nameGuess) && <p className="text-xs text-muted">This venue is also in the global library; you can heart it there instead.</p>}
+                {!targetId && dupes[0] && (
+                  <p className="text-xs text-gold">
+                    Looks similar to “{dupes[0].name}” in your library — choose it above to update it instead.
+                  </p>
+                )}
+                {!targetId && globals.some((g) => g.fields.name === nameGuess) && (
+                  <p className="text-xs text-muted">
+                    This venue is also in the global library; you can heart it there instead.
+                  </p>
+                )}
               </>
             ) : (
-              <p className="text-sm">Saving into the <strong>global library</strong> (unpublished) with provenance: {provenance?.source}.</p>
+              <p className="text-sm">
+                Saving into the <strong>global library</strong> (unpublished) with provenance:{' '}
+                {provenance?.source}.
+              </p>
             )}
             <div className="flex flex-wrap gap-2 items-center">
               {flags.aiParsing ? (
-                <button className="btn-secondary btn-sm" onClick={() => void runAi()} disabled={aiBusy}><Wand2 size={15} /> {aiBusy ? 'Reading with AI…' : 'Read with AI'}</button>
+                <button className="btn-secondary btn-sm" onClick={() => void runAi()} disabled={aiBusy}>
+                  <Wand2 size={15} /> {aiBusy ? 'Reading with AI…' : 'Read with AI'}
+                </button>
               ) : (
                 <Tooltip text="AI features aren't enabled on this site yet">
-                  <button className="btn-secondary btn-sm" disabled aria-disabled="true"><Wand2 size={15} /> Read with AI</button>
+                  <button className="btn-secondary btn-sm" disabled aria-disabled="true">
+                    <Wand2 size={15} /> Read with AI
+                  </button>
                 </Tooltip>
               )}
               <label className="text-sm inline-flex items-center gap-2 ml-auto min-h-[44px]">
-                <input type="checkbox" className="h-4 w-4" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} /> Show all fields
+                <input
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={showAll}
+                  onChange={(e) => setShowAll(e.target.checked)}
+                />{' '}
+                Show all fields
               </label>
             </div>
           </div>
@@ -246,31 +379,84 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
               return (
                 <li key={f.key} className={cx('card p-3', st.accept && 'border-accent/40')}>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <input type="checkbox" className="h-5 w-5" aria-label={`Use suggested ${f.label}`} checked={st.accept} onChange={(e) => setFields({ ...fields, [f.key]: { ...st, accept: e.target.checked } })} />
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5"
+                      aria-label={`Use suggested ${f.label}`}
+                      checked={st.accept}
+                      onChange={(e) => setFields({ ...fields, [f.key]: { ...st, accept: e.target.checked } })}
+                    />
                     <Icon name={f.icon} size={15} className="text-muted" />
                     <span className="text-sm font-medium">{f.label}</span>
                     {st.s && (
-                      <span className={cx('ml-auto text-[11px] rounded-full px-2 py-0.5 border', st.s.confidence >= 0.7 ? 'text-ok border-ok/30' : 'text-warn border-warn/30')}>
-                        {st.s.source === 'ai' ? 'AI · ' : ''}{Math.round(st.s.confidence * 100)}%
+                      <span
+                        className={cx(
+                          'ml-auto text-[11px] rounded-full px-2 py-0.5 border',
+                          st.s.confidence >= 0.7 ? 'text-ok border-ok/30' : 'text-warn border-warn/30',
+                        )}
+                      >
+                        {st.s.source === 'ai' ? 'AI · ' : ''}
+                        {Math.round(st.s.confidence * 100)}%
                       </span>
                     )}
                   </div>
                   {f.type === 'longtext' ? (
-                    <textarea className="input" rows={2} value={toInput(f.key, st.value)} aria-label={f.label} onChange={(e) => setFields({ ...fields, [f.key]: { ...st, value: fromInput(f.key, e.target.value), accept: true } })} />
+                    <textarea
+                      className="input"
+                      rows={2}
+                      value={toInput(f.key, st.value)}
+                      aria-label={f.label}
+                      onChange={(e) =>
+                        setFields({
+                          ...fields,
+                          [f.key]: { ...st, value: fromInput(f.key, e.target.value), accept: true },
+                        })
+                      }
+                    />
                   ) : f.type === 'select' ? (
-                    <select className="input" value={toInput(f.key, st.value)} aria-label={f.label} onChange={(e) => setFields({ ...fields, [f.key]: { ...st, value: e.target.value || undefined, accept: true } })}>
+                    <select
+                      className="input"
+                      value={toInput(f.key, st.value)}
+                      aria-label={f.label}
+                      onChange={(e) =>
+                        setFields({
+                          ...fields,
+                          [f.key]: { ...st, value: e.target.value || undefined, accept: true },
+                        })
+                      }
+                    >
                       <option value="">—</option>
-                      {f.options!.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      {f.options!.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
                     </select>
                   ) : (
-                    <input className="input" value={toInput(f.key, st.value)} aria-label={f.label} onChange={(e) => setFields({ ...fields, [f.key]: { ...st, value: fromInput(f.key, e.target.value), accept: true } })} placeholder={f.type === 'bool' ? 'yes / no' : ''} />
+                    <input
+                      className="input"
+                      value={toInput(f.key, st.value)}
+                      aria-label={f.label}
+                      onChange={(e) =>
+                        setFields({
+                          ...fields,
+                          [f.key]: { ...st, value: fromInput(f.key, e.target.value), accept: true },
+                        })
+                      }
+                      placeholder={f.type === 'bool' ? 'yes / no' : ''}
+                    />
                   )}
                   {st.s?.snippet && (
-                    <button className="text-xs text-muted mt-1.5 text-left hover:text-ink" onClick={() => st.s?.page && setPage(st.s.page)}>
+                    <button
+                      className="text-xs text-muted mt-1.5 text-left hover:text-ink"
+                      onClick={() => st.s?.page && setPage(st.s.page)}
+                    >
                       {st.s.page ? <span className="underline">p.{st.s.page}</span> : null} “{st.s.snippet}”
                     </button>
                   )}
-                  {targetVenue && !isEmptyValue(cur) && <p className="text-xs text-muted mt-1">Currently: {formatFieldValue(f.key, cur)}</p>}
+                  {targetVenue && !isEmptyValue(cur) && (
+                    <p className="text-xs text-muted mt-1">Currently: {formatFieldValue(f.key, cur)}</p>
+                  )}
                 </li>
               );
             })}
@@ -281,9 +467,27 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
               <div className="label mb-2">Photos found in the document</div>
               <div className="grid grid-cols-3 gap-2">
                 {doc.photos.map((p, i) => (
-                  <label key={i} className={cx('relative rounded-lg overflow-hidden border-2 cursor-pointer', photoPick[i] ? 'border-accent' : 'border-transparent opacity-60')}>
-                    <img src={p} alt={`Candidate photo ${i + 1}`} className="aspect-[4/3] object-cover w-full" />
-                    <input type="checkbox" className="absolute top-1.5 left-1.5 h-5 w-5" checked={!!photoPick[i]} onChange={(e) => setPhotoPick(photoPick.map((x, j) => (j === i ? e.target.checked : x)))} aria-label={`Add photo ${i + 1} to gallery`} />
+                  <label
+                    key={i}
+                    className={cx(
+                      'relative rounded-lg overflow-hidden border-2 cursor-pointer',
+                      photoPick[i] ? 'border-accent' : 'border-transparent opacity-60',
+                    )}
+                  >
+                    <img
+                      src={p}
+                      alt={`Candidate photo ${i + 1}`}
+                      className="aspect-[4/3] object-cover w-full"
+                    />
+                    <input
+                      type="checkbox"
+                      className="absolute top-1.5 left-1.5 h-5 w-5"
+                      checked={!!photoPick[i]}
+                      onChange={(e) =>
+                        setPhotoPick(photoPick.map((x, j) => (j === i ? e.target.checked : x)))
+                      }
+                      aria-label={`Add photo ${i + 1} to gallery`}
+                    />
                   </label>
                 ))}
               </div>
@@ -292,34 +496,63 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
 
           <div className="card p-4 space-y-4">
             <div className="flex items-center gap-2">
-              <input id="accept-pricing" type="checkbox" className="h-5 w-5" checked={pricingAccept} onChange={(e) => setPricingAccept(e.target.checked)} />
-              <label htmlFor="accept-pricing" className="font-medium">Use these pricing rules</label>
-              <span className="text-xs text-muted ml-auto">{pricing.components.length} component(s) found</span>
+              <input
+                id="accept-pricing"
+                type="checkbox"
+                className="h-5 w-5"
+                checked={pricingAccept}
+                onChange={(e) => setPricingAccept(e.target.checked)}
+              />
+              <label htmlFor="accept-pricing" className="font-medium">
+                Use these pricing rules
+              </label>
+              <span className="text-xs text-muted ml-auto">
+                {pricing.components.length} component(s) found
+              </span>
             </div>
             {Object.entries(doc.extraction.pricingSources).length > 0 && (
               <ul className="text-xs text-muted space-y-1">
-                {Object.entries(doc.extraction.pricingSources).slice(0, 8).map(([k, src]) => (
-                  <li key={k}>
-                    <button className="text-left hover:text-ink" onClick={() => src.page && setPage(src.page)}>
-                      <span className="underline">p.{src.page}</span> “{src.snippet}”
-                    </button>
-                  </li>
-                ))}
+                {Object.entries(doc.extraction.pricingSources)
+                  .slice(0, 8)
+                  .map(([k, src]) => (
+                    <li key={k}>
+                      <button
+                        className="text-left hover:text-ink"
+                        onClick={() => src.page && setPage(src.page)}
+                      >
+                        <span className="underline">p.{src.page}</span> “{src.snippet}”
+                      </button>
+                    </li>
+                  ))}
               </ul>
             )}
             <PricingEditor value={pricing} onChange={setPricing} />
             <details>
               <summary className="cursor-pointer text-sm font-medium">Preview the estimate</summary>
               <div className="mt-3">
-                <PricingPlayground pricing={pricing} profile={profile} overrides={{}} onOverrides={() => undefined} name="Preview" />
+                <PricingPlayground
+                  pricing={pricing}
+                  profile={profile}
+                  overrides={{}}
+                  onOverrides={() => undefined}
+                  name="Preview"
+                />
               </div>
             </details>
           </div>
         </div>
       </div>
       <div className="sticky bottom-[80px] md:bottom-4 z-30 card p-3 flex flex-wrap items-center gap-3">
-        <span className="text-sm">{nAccepted} field(s){pricingAccept && pricing.components.length ? ' + pricing' : ''} will be saved{blob && target === 'mine' ? ', and the document attached' : ''}.</span>
-        <button className="btn-primary ml-auto" onClick={() => void save()} disabled={saving} data-testid="review-save">
+        <span className="text-sm">
+          {nAccepted} field(s){pricingAccept && pricing.components.length ? ' + pricing' : ''} will be saved
+          {blob && target === 'mine' ? ', and the document attached' : ''}.
+        </span>
+        <button
+          className="btn-primary ml-auto"
+          onClick={() => void save()}
+          disabled={saving}
+          data-testid="review-save"
+        >
           {saving ? 'Saving…' : targetVenue ? `Update ${targetVenue.fields.name}` : 'Save venue'}
         </button>
       </div>
@@ -327,7 +560,21 @@ function Review({ doc, blob, venueId, target, provenance, onReset }: { doc: DocR
   );
 }
 
-export function DocumentImport({ initialFiles, venueId, docId, target, provenance, mode }: { initialFiles?: File[]; venueId?: string; docId?: string; target: 'mine' | 'global'; provenance?: SourceInfo; mode: 'doc' | 'paste' | 'link' }) {
+export function DocumentImport({
+  initialFiles,
+  venueId,
+  docId,
+  target,
+  provenance,
+  mode,
+}: {
+  initialFiles?: File[];
+  venueId?: string;
+  docId?: string;
+  target: 'mine' | 'global';
+  provenance?: SourceInfo;
+  mode: 'doc' | 'paste' | 'link';
+}) {
   const handleError = useApp((s) => s.handleError);
   const documents = useApp((s) => s.documents);
   const [busy, setBusy] = useState(false);
@@ -340,7 +587,9 @@ export function DocumentImport({ initialFiles, venueId, docId, target, provenanc
   const run = async (file: Blob, name: string) => {
     setError('');
     if (file.size > MAX_UPLOAD_BYTES) {
-      setError('That file is larger than 25 MB. Try compressing the PDF or uploading screenshots of the pricing pages.');
+      setError(
+        'That file is larger than 25 MB. Try compressing the PDF or uploading screenshots of the pricing pages.',
+      );
       return;
     }
     setBusy(true);
@@ -357,7 +606,6 @@ export function DocumentImport({ initialFiles, venueId, docId, target, provenanc
 
   useEffect(() => {
     if (initialFiles?.length) void run(initialFiles[0], initialFiles[0].name);
-     
   }, [initialFiles]);
 
   useEffect(() => {
@@ -370,7 +618,17 @@ export function DocumentImport({ initialFiles, venueId, docId, target, provenanc
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docId]);
 
-  if (result) return <Review doc={result.doc} blob={result.blob} venueId={venueId} target={target} provenance={provenance} onReset={() => setResult(null)} />;
+  if (result)
+    return (
+      <Review
+        doc={result.doc}
+        blob={result.blob}
+        venueId={venueId}
+        target={target}
+        provenance={provenance}
+        onReset={() => setResult(null)}
+      />
+    );
 
   if (busy)
     return (
@@ -378,7 +636,10 @@ export function DocumentImport({ initialFiles, venueId, docId, target, provenanc
         <p className="font-serif text-2xl mb-2">Reading your document…</p>
         <p className="text-sm text-muted mb-5">{progress?.label ?? 'Starting'}</p>
         <div className="h-2 max-w-md mx-auto rounded-full bg-sunken overflow-hidden">
-          <div className="h-full bg-accent transition-all" style={{ width: `${Math.round((progress?.f ?? 0.02) * 100)}%` }} />
+          <div
+            className="h-full bg-accent transition-all"
+            style={{ width: `${Math.round((progress?.f ?? 0.02) * 100)}%` }}
+          />
         </div>
       </div>
     );
@@ -397,16 +658,42 @@ export function DocumentImport({ initialFiles, venueId, docId, target, provenanc
       )}
       {mode === 'paste' && (
         <div className="card p-5 space-y-3">
-          <label htmlFor="paste" className="font-medium">Paste text from an email or website</label>
-          <textarea id="paste" className="input" rows={10} value={paste} onChange={(e) => setPaste(e.target.value)} placeholder={'The Juniper Room\nSaturday site fee $9,000\nFood & beverage minimum $35,000\nPackages from $165 per person…'} />
-          <button className="btn-primary" disabled={!paste.trim()} onClick={() => setResult({ doc: processPastedText(paste) })}>Find details</button>
+          <label htmlFor="paste" className="font-medium">
+            Paste text from an email or website
+          </label>
+          <textarea
+            id="paste"
+            className="input"
+            rows={10}
+            value={paste}
+            onChange={(e) => setPaste(e.target.value)}
+            placeholder={
+              'The Juniper Room\nSaturday site fee $9,000\nFood & beverage minimum $35,000\nPackages from $165 per person…'
+            }
+          />
+          <button
+            className="btn-primary"
+            disabled={!paste.trim()}
+            onClick={() => setResult({ doc: processPastedText(paste) })}
+          >
+            Find details
+          </button>
         </div>
       )}
       {mode === 'link' && (
         <div className="card p-5 space-y-3">
-          <label htmlFor="doc-url" className="font-medium flex items-center gap-2"><LinkIcon size={16} /> Link to a PDF or “digital booklet”</label>
+          <label htmlFor="doc-url" className="font-medium flex items-center gap-2">
+            <LinkIcon size={16} /> Link to a PDF or “digital booklet”
+          </label>
           <div className="flex gap-2">
-            <input id="doc-url" className="input" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+            <input
+              id="doc-url"
+              className="input"
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://…"
+            />
             <button
               className="btn-primary"
               disabled={!url}
@@ -427,10 +714,17 @@ export function DocumentImport({ initialFiles, venueId, docId, target, provenanc
               Fetch
             </button>
           </div>
-          <p className="text-xs text-muted">Online flipbook viewers usually can’t be downloaded automatically. If that happens, use the viewer’s download button or take screenshots and upload them.</p>
+          <p className="text-xs text-muted">
+            Online flipbook viewers usually can’t be downloaded automatically. If that happens, use the
+            viewer’s download button or take screenshots and upload them.
+          </p>
         </div>
       )}
-      {error && <p className="text-sm text-bad flex gap-2" role="alert"><AlertTriangle size={16} className="shrink-0 mt-0.5" /> {error}</p>}
+      {error && (
+        <p className="text-sm text-bad flex gap-2" role="alert">
+          <AlertTriangle size={16} className="shrink-0 mt-0.5" /> {error}
+        </p>
+      )}
     </div>
   );
 }

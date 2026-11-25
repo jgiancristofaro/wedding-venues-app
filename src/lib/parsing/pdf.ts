@@ -5,7 +5,10 @@ import { itemsToText, type PdfTextItem } from './pdfText';
 let lib: typeof import('pdfjs-dist') | null = null;
 export async function pdfjs() {
   if (lib) return lib;
-  const [mod, worker] = await Promise.all([import('pdfjs-dist'), import('pdfjs-dist/build/pdf.worker.min.mjs?url')]);
+  const [mod, worker] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+  ]);
   mod.GlobalWorkerOptions.workerSrc = worker.default;
   lib = mod;
   return mod;
@@ -41,7 +44,13 @@ export async function pageImages(doc: PDFDocumentProxy, n: number): Promise<stri
   for (let i = 0; i < ops.fnArray.length; i++) {
     if (ops.fnArray[i] !== p.OPS.paintImageXObject) continue;
     const name = ops.argsArray[i][0] as string;
-    const img = await new Promise<{ width: number; height: number; data?: Uint8ClampedArray; bitmap?: ImageBitmap; kind?: number } | null>((resolve) => {
+    const img = await new Promise<{
+      width: number;
+      height: number;
+      data?: Uint8ClampedArray;
+      bitmap?: ImageBitmap;
+      kind?: number;
+    } | null>((resolve) => {
       try {
         page.objs.get(name, (o: unknown) => resolve(o as never));
       } catch {

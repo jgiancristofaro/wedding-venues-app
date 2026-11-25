@@ -5,3 +5,4 @@ supabase/seed.sql
 package-lock.json
 test-results
 playwright-report
+docs/PLAN.md

@@ -14,7 +14,9 @@ export function anthropicProvider(apiKey: string, model: string): CallModel {
       fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema', schema: call.schema } },
       system: call.system,
-      ...(call.webSearch ? { tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 6 }] } : {}),
+      ...(call.webSearch
+        ? { tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 6 }] }
+        : {}),
       messages: [{ role: 'user', content: user }],
     } as never);
     const msg = response as unknown as {
@@ -24,8 +26,16 @@ export function anthropicProvider(apiKey: string, model: string): CallModel {
       usage: { input_tokens: number; output_tokens: number };
     };
     if (msg.stop_reason === 'refusal') throw new Error('The model declined this request.');
-    const text = msg.content.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('');
-    return { text, model: msg.model, inputTokens: msg.usage.input_tokens, outputTokens: msg.usage.output_tokens };
+    const text = msg.content
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text ?? '')
+      .join('');
+    return {
+      text,
+      model: msg.model,
+      inputTokens: msg.usage.input_tokens,
+      outputTokens: msg.usage.output_tokens,
+    };
   };
 }
 

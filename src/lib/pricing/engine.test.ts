@@ -4,13 +4,21 @@ import { sanitizePricing } from './sanitize';
 import type { EstimateContext, PricingRules } from './types';
 
 const NOW = new Date('2026-11-01T00:00:00Z');
-const ctx = (o: Partial<EstimateContext> = {}): EstimateContext => ({ guests: 100, date: '2027-06-12', now: NOW, ...o }); // 2027-06-12 is a Saturday
+const ctx = (o: Partial<EstimateContext> = {}): EstimateContext => ({
+  guests: 100,
+  date: '2027-06-12',
+  now: NOW,
+  ...o,
+}); // 2027-06-12 is a Saturday
 const noTax = { taxPct: 0 };
 const line = (e: ReturnType<typeof estimate>, key: string) => e.lines.find((l) => l.key === key)?.amount;
 
 describe('pricing engine — single structures', () => {
   it('1. flat site fee only adds estimated outside catering and is Rough', () => {
-    const e = estimate({ components: [{ id: 's', kind: 'site_fee', rates: [{ amount: 10000 }] }], charges: noTax }, ctx());
+    const e = estimate(
+      { components: [{ id: 's', kind: 'site_fee', rates: [{ amount: 10000 }] }], charges: noTax },
+      ctx(),
+    );
     expect(line(e, 's')).toBe(10000);
     expect(line(e, 'catering-estimate')).toBe(100 * OUTSIDE_CATERING_PP.base);
     expect(e.total).toBe(10000 + 16500);
@@ -35,7 +43,15 @@ describe('pricing engine — single structures', () => {
     const rules: PricingRules = {
       seasons: { peakMonths: [5, 6, 9, 10], offPeakMonths: [1, 2, 3] },
       components: [
-        { id: 's', kind: 'site_fee', rates: [{ amount: 9000 }, { amount: 15000, when: { season: 'peak' } }, { amount: 5000, when: { season: 'off_peak' } }] },
+        {
+          id: 's',
+          kind: 'site_fee',
+          rates: [
+            { amount: 9000 },
+            { amount: 15000, when: { season: 'peak' } },
+            { amount: 5000, when: { season: 'off_peak' } },
+          ],
+        },
         { id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] },
       ],
       charges: { ...noTax, serviceChargePct: 0 },
@@ -52,7 +68,11 @@ describe('pricing engine — single structures', () => {
         {
           id: 's',
           kind: 'site_fee',
-          rates: [{ amount: 9000 }, { amount: 12000, when: { days: [6] } }, { amount: 20000, when: { dates: ['2027-06-12'] } }],
+          rates: [
+            { amount: 9000 },
+            { amount: 12000, when: { days: [6] } },
+            { amount: 20000, when: { dates: ['2027-06-12'] } },
+          ],
         },
         { id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] },
       ],
@@ -64,7 +84,14 @@ describe('pricing engine — single structures', () => {
   it('5. time slot pricing: daytime is cheaper when chosen', () => {
     const rules: PricingRules = {
       components: [
-        { id: 's', kind: 'site_fee', rates: [{ amount: 12000, when: { timeSlot: 'evening' } }, { amount: 7000, when: { timeSlot: 'day' } }] },
+        {
+          id: 's',
+          kind: 'site_fee',
+          rates: [
+            { amount: 12000, when: { timeSlot: 'evening' } },
+            { amount: 7000, when: { timeSlot: 'day' } },
+          ],
+        },
         { id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] },
       ],
       charges: { ...noTax, serviceChargePct: 0 },
@@ -127,7 +154,9 @@ describe('pricing engine — single structures', () => {
 
   it('9. package guest minimum bills at least the minimum', () => {
     const rules: PricingRules = {
-      components: [{ id: 'p', kind: 'per_person', name: 'Min 120', minGuests: 120, rates: [{ amount: 100 }] }],
+      components: [
+        { id: 'p', kind: 'per_person', name: 'Min 120', minGuests: 120, rates: [{ amount: 100 }] },
+      ],
       charges: { ...noTax, serviceChargePct: 0 },
     };
     const e = estimate(rules, ctx({ guests: 90 }));
@@ -160,7 +189,17 @@ describe('pricing engine — single structures', () => {
 
   it('11. capacity tier: guest count above all tiers uses top tier and flags it', () => {
     const rules: PricingRules = {
-      components: [{ id: 't', kind: 'capacity_tier', includesFnb: true, rates: [{ amount: 20000, when: { guestMax: 100 } }, { amount: 26000, when: { guestMin: 101, guestMax: 150 } }] }],
+      components: [
+        {
+          id: 't',
+          kind: 'capacity_tier',
+          includesFnb: true,
+          rates: [
+            { amount: 20000, when: { guestMax: 100 } },
+            { amount: 26000, when: { guestMin: 101, guestMax: 150 } },
+          ],
+        },
+      ],
       charges: noTax,
     };
     const e = estimate(rules, ctx({ guests: 180 }));
@@ -174,7 +213,13 @@ describe('pricing engine — single structures', () => {
       components: [
         { id: 's', kind: 'site_fee', rates: [{ amount: 9000 }] },
         { id: 'm', kind: 'fnb_minimum', rates: [{ amount: 40000 }] },
-        { id: 'b', kind: 'buyout', rates: [{ amount: 60000 }], replaces: ['site_fee', 'fnb_minimum'], includesFnb: true },
+        {
+          id: 'b',
+          kind: 'buyout',
+          rates: [{ amount: 60000 }],
+          replaces: ['site_fee', 'fnb_minimum'],
+          includesFnb: true,
+        },
       ],
       charges: noTax,
     };
@@ -200,7 +245,11 @@ describe('pricing engine — single structures', () => {
 });
 
 describe('pricing engine — F&B minimum edge cases', () => {
-  const base = (minimum: Record<string, unknown>, pp: number, extra: Partial<PricingRules['charges']> = {}): PricingRules =>
+  const base = (
+    minimum: Record<string, unknown>,
+    pp: number,
+    extra: Partial<PricingRules['charges']> = {},
+  ): PricingRules =>
     sanitizePricing({
       components: [
         { id: 'm', kind: 'fnb_minimum', rates: [{ amount: 20000 }], ...minimum },
@@ -247,7 +296,10 @@ describe('pricing engine — F&B minimum edge cases', () => {
   });
 
   it('19. minimum only (no per-person pricing): assumes spend = minimum; high case higher; Partial', () => {
-    const rules: PricingRules = { components: [{ id: 'm', kind: 'fnb_minimum', rates: [{ amount: 30000 }] }], charges: { serviceChargePct: 20, taxPct: 0 } };
+    const rules: PricingRules = {
+      components: [{ id: 'm', kind: 'fnb_minimum', rates: [{ amount: 30000 }] }],
+      charges: { serviceChargePct: 20, taxPct: 0 },
+    };
     const e = estimate(rules, ctx());
     expect(e.total).toBe(36000);
     expect(e.high).toBe(Math.round(36000 * 1.2));
@@ -257,7 +309,14 @@ describe('pricing engine — F&B minimum edge cases', () => {
   it('20. minimum varies by day: Saturday minimum higher than Sunday', () => {
     const rules: PricingRules = {
       components: [
-        { id: 'm', kind: 'fnb_minimum', rates: [{ amount: 15000, when: { days: [0, 5] } }, { amount: 25000, when: { days: [6] } }] },
+        {
+          id: 'm',
+          kind: 'fnb_minimum',
+          rates: [
+            { amount: 15000, when: { days: [0, 5] } },
+            { amount: 25000, when: { days: [6] } },
+          ],
+        },
         { id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] },
       ],
       charges: { serviceChargePct: 0, taxPct: 0 },
@@ -289,11 +348,19 @@ describe('pricing engine — charges, tax bases, add-ons', () => {
 
   it('22. service charge base: F&B only vs F&B + rental vs all', () => {
     expect(line(estimate(rules({ serviceChargePct: 20, taxPct: 0 }), ctx()), 'service')).toBe(2000);
-    expect(line(estimate(rules({ serviceChargePct: 20, serviceChargeBase: 'fnb_rental', taxPct: 0 }), ctx()), 'service')).toBe(4000);
+    expect(
+      line(
+        estimate(rules({ serviceChargePct: 20, serviceChargeBase: 'fnb_rental', taxPct: 0 }), ctx()),
+        'service',
+      ),
+    ).toBe(4000);
   });
 
   it('23. admin fee and gratuity with their own bases; gratuity untaxed by default', () => {
-    const e = estimate(rules({ serviceChargePct: 0, adminFeePct: 5, adminFeeBase: 'all', gratuityPct: 10, taxPct: 10 }), ctx());
+    const e = estimate(
+      rules({ serviceChargePct: 0, adminFeePct: 5, adminFeeBase: 'all', gratuityPct: 10, taxPct: 10 }),
+      ctx(),
+    );
     expect(line(e, 'admin')).toBe(1000);
     expect(line(e, 'gratuity')).toBe(1000);
     expect(line(e, 'tax')).toBe(2100); // (20k + 1k admin) × 10%
@@ -323,10 +390,41 @@ describe('pricing engine — charges, tax bases, add-ons', () => {
     const r: PricingRules = {
       components: [
         { id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] },
-        { id: 'cer', kind: 'addon', name: 'Ceremony fee', addonType: 'ceremony', unit: 'flat', required: true, rates: [{ amount: 2500 }] },
-        { id: 'cake', kind: 'addon', name: 'Cake cutting', addonType: 'cake_cutting', unit: 'per_person', required: true, rates: [{ amount: 4 }] },
-        { id: 'sec', kind: 'addon', name: 'Security', addonType: 'security', unit: 'per_hour', required: true, rates: [{ amount: 75 }] },
-        { id: 'photo', kind: 'addon', name: 'Photo booth', unit: 'flat', required: false, rates: [{ amount: 1200 }] },
+        {
+          id: 'cer',
+          kind: 'addon',
+          name: 'Ceremony fee',
+          addonType: 'ceremony',
+          unit: 'flat',
+          required: true,
+          rates: [{ amount: 2500 }],
+        },
+        {
+          id: 'cake',
+          kind: 'addon',
+          name: 'Cake cutting',
+          addonType: 'cake_cutting',
+          unit: 'per_person',
+          required: true,
+          rates: [{ amount: 4 }],
+        },
+        {
+          id: 'sec',
+          kind: 'addon',
+          name: 'Security',
+          addonType: 'security',
+          unit: 'per_hour',
+          required: true,
+          rates: [{ amount: 75 }],
+        },
+        {
+          id: 'photo',
+          kind: 'addon',
+          name: 'Photo booth',
+          unit: 'flat',
+          required: false,
+          rates: [{ amount: 1200 }],
+        },
       ],
       hoursIncluded: 5,
       charges: { serviceChargePct: 20, taxPct: 0 },
@@ -358,11 +456,32 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
     const r: PricingRules = {
       seasons: { peakMonths: [5, 6, 9, 10] },
       components: [
-        { id: 's', kind: 'site_fee', rates: [{ amount: 6000 }, { amount: 9000, when: { season: 'peak', days: [6] } }] },
-        { id: 'm', kind: 'fnb_minimum', rates: [{ amount: 20000 }, { amount: 30000, when: { days: [6], season: 'peak' } }] },
-        { id: 'a', kind: 'per_person', name: 'Silver', rates: [{ amount: 165 }, { amount: 150, when: { guestMin: 150 } }] },
+        {
+          id: 's',
+          kind: 'site_fee',
+          rates: [{ amount: 6000 }, { amount: 9000, when: { season: 'peak', days: [6] } }],
+        },
+        {
+          id: 'm',
+          kind: 'fnb_minimum',
+          rates: [{ amount: 20000 }, { amount: 30000, when: { days: [6], season: 'peak' } }],
+        },
+        {
+          id: 'a',
+          kind: 'per_person',
+          name: 'Silver',
+          rates: [{ amount: 165 }, { amount: 150, when: { guestMin: 150 } }],
+        },
         { id: 'b', kind: 'per_person', name: 'Gold', rates: [{ amount: 210 }] },
-        { id: 'coord', kind: 'addon', name: 'Coordinator', addonType: 'coordinator', unit: 'flat', required: true, rates: [{ amount: 1800 }] },
+        {
+          id: 'coord',
+          kind: 'addon',
+          name: 'Coordinator',
+          addonType: 'coordinator',
+          unit: 'flat',
+          required: true,
+          rates: [{ amount: 1800 }],
+        },
       ],
       charges: { serviceChargePct: 22, taxPct: 8.875 },
     };
@@ -379,7 +498,10 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
   });
 
   it('30. guest-count range produces low/high across min and max', () => {
-    const r: PricingRules = { components: [{ id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] }], charges: { serviceChargePct: 0, taxPct: 0 } };
+    const r: PricingRules = {
+      components: [{ id: 'p', kind: 'per_person', name: 'Dinner', rates: [{ amount: 100 }] }],
+      charges: { serviceChargePct: 0, taxPct: 0 },
+    };
     const e = estimate(r, ctx({ guests: 120, guestMin: 100, guestMax: 150 }));
     expect(e.total).toBe(12000);
     expect(e.low).toBe(10000);
@@ -408,7 +530,11 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
   });
 
   it('33. stale pricing (>18 months) is flagged', () => {
-    const r: PricingRules = { asOf: '2024-01-15', components: [{ id: 'p', kind: 'per_person', name: 'D', rates: [{ amount: 100 }] }], charges: { serviceChargePct: 0, taxPct: 0 } };
+    const r: PricingRules = {
+      asOf: '2024-01-15',
+      components: [{ id: 'p', kind: 'per_person', name: 'D', rates: [{ amount: 100 }] }],
+      charges: { serviceChargePct: 0, taxPct: 0 },
+    };
     const e = estimate(r, ctx());
     expect(e.stale).toBe(true);
     expect(e.confidence).toBe('partial');
@@ -419,7 +545,15 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
     const r: PricingRules = {
       seasons: { peakMonths: [6], offPeakMonths: [1] },
       components: [
-        { id: 's', kind: 'site_fee', rates: [{ amount: 5000 }, { amount: 10000, when: { season: 'peak' } }, { amount: 2000, when: { season: 'off_peak' } }] },
+        {
+          id: 's',
+          kind: 'site_fee',
+          rates: [
+            { amount: 5000 },
+            { amount: 10000, when: { season: 'peak' } },
+            { amount: 2000, when: { season: 'off_peak' } },
+          ],
+        },
         { id: 'p', kind: 'per_person', name: 'D', rates: [{ amount: 100 }] },
       ],
       charges: { serviceChargePct: 0, taxPct: 0 },
@@ -433,7 +567,11 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
 
   it('35. pickRate prefers the most specific match and ignores non-matching rates', () => {
     const r: PricingRules = { components: [] };
-    const rates = [{ amount: 1 }, { amount: 2, when: { days: [6] as (0 | 6)[] } }, { amount: 3, when: { days: [6] as (0 | 6)[], months: [6] } }];
+    const rates = [
+      { amount: 1 },
+      { amount: 2, when: { days: [6] as (0 | 6)[] } },
+      { amount: 3, when: { days: [6] as (0 | 6)[], months: [6] } },
+    ];
     expect(pickRate(rates, { guests: 1, day: 6, month: 6 }, r)?.amount).toBe(3);
     expect(pickRate(rates, { guests: 1, day: 6, month: 7 }, r)?.amount).toBe(2);
     expect(pickRate(rates, { guests: 1, day: 1, month: 7 }, r)?.amount).toBe(1);
@@ -441,7 +579,11 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
 
   it('36. sanitizePricing drops malformed components and clamps values', () => {
     const r = sanitizePricing({
-      components: [{ kind: 'site_fee', rates: [{ amount: '5000' }, { amount: -1 }, { amount: 'abc' }] }, { kind: 'bogus' }, null],
+      components: [
+        { kind: 'site_fee', rates: [{ amount: '5000' }, { amount: -1 }, { amount: 'abc' }] },
+        { kind: 'bogus' },
+        null,
+      ],
       charges: { serviceChargePct: 250, taxPct: 8.875 },
     });
     expect(r.components).toHaveLength(1);
@@ -458,7 +600,11 @@ describe('pricing engine — mixed structures, missing data, ranges', () => {
       ],
       charges: { serviceChargePct: 21.5, adminFeePct: 3, taxPct: 8.875 },
     };
-    const res = evaluateScenario(r, { guests: 137, day: 6, month: 6 }, { level: 'base', defaultTaxPct: 8.875 });
+    const res = evaluateScenario(
+      r,
+      { guests: 137, day: 6, month: 6 },
+      { level: 'base', defaultTaxPct: 8.875 },
+    );
     const sum = res.lines.reduce((a, l) => a + l.amount, 0);
     expect(Math.abs(sum - res.total)).toBeLessThan(0.01);
   });

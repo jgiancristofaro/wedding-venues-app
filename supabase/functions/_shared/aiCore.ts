@@ -59,7 +59,10 @@ export const EXTRACTION_SCHEMA = {
         seasons: {
           type: 'object',
           additionalProperties: false,
-          properties: { peakMonths: { type: 'array', items: { type: 'integer' } }, offPeakMonths: { type: 'array', items: { type: 'integer' } } },
+          properties: {
+            peakMonths: { type: 'array', items: { type: 'integer' } },
+            offPeakMonths: { type: 'array', items: { type: 'integer' } },
+          },
         },
         hoursIncluded: { type: 'number' },
         overtimePerHour: { type: 'number' },
@@ -83,7 +86,10 @@ export const EXTRACTION_SCHEMA = {
             additionalProperties: false,
             required: ['kind', 'rates'],
             properties: {
-              kind: { type: 'string', enum: ['site_fee', 'fnb_minimum', 'per_person', 'capacity_tier', 'buyout', 'addon'] },
+              kind: {
+                type: 'string',
+                enum: ['site_fee', 'fnb_minimum', 'per_person', 'capacity_tier', 'buyout', 'addon'],
+              },
               label: { type: 'string' },
               name: { type: 'string' },
               rates: { type: 'array', items: rate },
@@ -133,10 +139,36 @@ export const ENRICH_SCHEMA = {
 } as const;
 
 export const ALLOWED_FIELDS = new Set([
-  'name', 'description', 'address', 'area', 'region', 'website', 'contactName', 'contactEmail', 'contactPhone', 'venueType',
-  'styleTags', 'setting', 'capacitySeated', 'capacityStanding', 'ceremonyOnSite', 'rainPlan', 'cateringPolicy',
-  'outsideCateringFee', 'alcoholPolicy', 'hoursIncluded', 'overtimeNotes', 'accommodations', 'accommodationsNotes',
-  'parking', 'accessibility', 'noiseCurfew', 'depositPolicy', 'paymentSchedule', 'cancellationPolicy', 'inclusions',
+  'name',
+  'description',
+  'address',
+  'area',
+  'region',
+  'website',
+  'contactName',
+  'contactEmail',
+  'contactPhone',
+  'venueType',
+  'styleTags',
+  'setting',
+  'capacitySeated',
+  'capacityStanding',
+  'ceremonyOnSite',
+  'rainPlan',
+  'cateringPolicy',
+  'outsideCateringFee',
+  'alcoholPolicy',
+  'hoursIncluded',
+  'overtimeNotes',
+  'accommodations',
+  'accommodationsNotes',
+  'parking',
+  'accessibility',
+  'noiseCurfew',
+  'depositPolicy',
+  'paymentSchedule',
+  'cancellationPolicy',
+  'inclusions',
 ]);
 
 export interface ValidationResult<T> {
@@ -146,7 +178,14 @@ export interface ValidationResult<T> {
 }
 
 type Json = unknown;
-type Schema = { type?: string | readonly string[]; properties?: Record<string, Schema>; required?: readonly string[]; items?: Schema; enum?: readonly string[]; additionalProperties?: boolean };
+type Schema = {
+  type?: string | readonly string[];
+  properties?: Record<string, Schema>;
+  required?: readonly string[];
+  items?: Schema;
+  enum?: readonly string[];
+  additionalProperties?: boolean;
+};
 
 function typeOf(v: Json): string {
   if (Array.isArray(v)) return 'array';
@@ -166,7 +205,8 @@ export function validate(schema: Schema, v: Json, path = '$', errors: string[] =
       return errors;
     }
   }
-  if (schema.enum && !schema.enum.includes(v as string)) errors.push(`${path}: must be one of ${schema.enum.join(', ')}`);
+  if (schema.enum && !schema.enum.includes(v as string))
+    errors.push(`${path}: must be one of ${schema.enum.join(', ')}`);
   if (typeOf(v) === 'object' && schema.properties) {
     const o = v as Record<string, Json>;
     for (const r of schema.required ?? []) if (!(r in o)) errors.push(`${path}.${r}: required`);
@@ -179,7 +219,8 @@ export function validate(schema: Schema, v: Json, path = '$', errors: string[] =
       validate(sub, val, `${path}.${k}`, errors);
     }
   }
-  if (Array.isArray(v) && schema.items) v.forEach((x, i) => validate(schema.items!, x, `${path}[${i}]`, errors));
+  if (Array.isArray(v) && schema.items)
+    v.forEach((x, i) => validate(schema.items!, x, `${path}[${i}]`, errors));
   return errors;
 }
 
@@ -189,7 +230,14 @@ export interface Extraction {
   warnings?: string[];
 }
 export interface EnrichResult {
-  proposals: Array<{ field: string; value: unknown; confidence: number; sourceUrl: string; sourceDate?: string; snippet?: string }>;
+  proposals: Array<{
+    field: string;
+    value: unknown;
+    confidence: number;
+    sourceUrl: string;
+    sourceDate?: string;
+    snippet?: string;
+  }>;
 }
 
 function semanticChecks(x: Extraction): string[] {
@@ -200,14 +248,18 @@ function semanticChecks(x: Extraction): string[] {
   });
   (x.pricing.components as Array<{ rates: Array<{ amount: number }> }>).forEach((c, i) =>
     c.rates.forEach((r, j) => {
-      if (r.amount < 0 || r.amount > 5_000_000) errs.push(`$.pricing.components[${i}].rates[${j}].amount: out of range`);
+      if (r.amount < 0 || r.amount > 5_000_000)
+        errs.push(`$.pricing.components[${i}].rates[${j}].amount: out of range`);
     }),
   );
   return errs;
 }
 
 export function parseJsonLoose(text: string): unknown {
-  const trimmed = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+  const trimmed = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/, '');
   return JSON.parse(trimmed);
 }
 
@@ -219,14 +271,18 @@ export function validateExtraction(raw: unknown): ValidationResult<Extraction> {
   return sem.length ? { ok: false, errors: sem } : { ok: true, value: x, errors: [] };
 }
 
-export function validateEnrich(raw: unknown, allowedFields: Set<string> = ALLOWED_FIELDS): ValidationResult<EnrichResult> {
+export function validateEnrich(
+  raw: unknown,
+  allowedFields: Set<string> = ALLOWED_FIELDS,
+): ValidationResult<EnrichResult> {
   const errors = validate(ENRICH_SCHEMA as unknown as Schema, raw);
   if (errors.length) return { ok: false, errors };
   const r = raw as EnrichResult;
   const sem: string[] = [];
   r.proposals.forEach((p, i) => {
     if (!allowedFields.has(p.field)) sem.push(`$.proposals[${i}].field: not an allowed field`);
-    if (!/^https?:\/\//.test(p.sourceUrl)) sem.push(`$.proposals[${i}].sourceUrl: must be a public http(s) URL`);
+    if (!/^https?:\/\//.test(p.sourceUrl))
+      sem.push(`$.proposals[${i}].sourceUrl: must be a public http(s) URL`);
   });
   return sem.length ? { ok: false, errors: sem } : { ok: true, value: r, errors: [] };
 }
@@ -294,11 +350,16 @@ If you cannot find a value with a clear source, omit it. Never guess prices.`;
 
 export function buildParseUser(pages: string[], maxPages: number, filename: string): string {
   const used = pages.slice(0, maxPages);
-  return `Document: ${filename}\nPages: ${used.length}${pages.length > maxPages ? ` (truncated from ${pages.length} by the per-document page limit)` : ''}\n\n` +
-    used.map((p, i) => `--- PAGE ${i + 1} ---\n${p}`).join('\n\n');
+  return (
+    `Document: ${filename}\nPages: ${used.length}${pages.length > maxPages ? ` (truncated from ${pages.length} by the per-document page limit)` : ''}\n\n` +
+    used.map((p, i) => `--- PAGE ${i + 1} ---\n${p}`).join('\n\n')
+  );
 }
 
-export function buildEnrichUser(venue: { name: string; area?: string; website?: string }, fields: string[]): string {
+export function buildEnrichUser(
+  venue: { name: string; area?: string; website?: string },
+  fields: string[],
+): string {
   return `Venue: ${venue.name}${venue.area ? ` (${venue.area})` : ''}${venue.website ? `\nWebsite: ${venue.website}` : ''}\nFind these fields: ${fields.join(', ')}`;
 }
 

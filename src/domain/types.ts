@@ -59,7 +59,8 @@ export interface VenueFields {
 
 export type FieldKey = keyof VenueFields;
 
-export type ProvenanceSource = 'manual' | 'spreadsheet' | 'document' | 'global' | 'ai_web' | 'ai_document' | 'geocoder';
+export type ProvenanceSource =
+  'manual' | 'spreadsheet' | 'document' | 'global' | 'ai_web' | 'ai_document' | 'geocoder';
 
 export interface FieldProvenance {
   source: ProvenanceSource;

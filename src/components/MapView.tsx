@@ -15,7 +15,13 @@ export interface MapItem {
   area?: string;
 }
 
-function FitBounds({ items, focus }: { items: MapItem[]; focus?: { lat: number; lng: number; zoom?: number } }) {
+function FitBounds({
+  items,
+  focus,
+}: {
+  items: MapItem[];
+  focus?: { lat: number; lng: number; zoom?: number };
+}) {
   const map = useMap();
   const key = items.map((i) => i.ref).join('|');
   useEffect(() => {
@@ -57,15 +63,37 @@ export default function MapView({
   single?: boolean;
 }) {
   const dense = items.length > 250;
-  const center = useMemo<[number, number]>(() => (items[0] ? [items[0].lat, items[0].lng] : [40.75, -73.98]), [items]);
+  const center = useMemo<[number, number]>(
+    () => (items[0] ? [items[0].lat, items[0].lng] : [40.75, -73.98]),
+    [items],
+  );
   return (
-    <div style={{ height }} className="w-full overflow-hidden rounded-2xl border border-line" role="region" aria-label="Map of venues">
-      <MapContainer center={center} zoom={single ? 13 : 9} scrollWheelZoom preferCanvas={dense} style={{ height: '100%', width: '100%' }}>
-        <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <div
+      style={{ height }}
+      className="w-full overflow-hidden rounded-2xl border border-line"
+      role="region"
+      aria-label="Map of venues"
+    >
+      <MapContainer
+        center={center}
+        zoom={single ? 13 : 9}
+        scrollWheelZoom
+        preferCanvas={dense}
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
         <FitBounds items={items} focus={focus} />
         {items.map((i) =>
           dense ? (
-            <CircleMarker key={i.ref} center={[i.lat, i.lng]} radius={6} pathOptions={{ color: '#fff', weight: 1.5, fillColor: '#34483C', fillOpacity: 0.9 }}>
+            <CircleMarker
+              key={i.ref}
+              center={[i.lat, i.lng]}
+              radius={6}
+              pathOptions={{ color: '#fff', weight: 1.5, fillColor: '#34483C', fillOpacity: 0.9 }}
+            >
               <Popup>
                 <Link to={i.href}>{i.name}</Link>
                 <br />
@@ -76,7 +104,10 @@ export default function MapView({
             <Marker
               key={i.ref}
               position={[i.lat, i.lng]}
-              icon={priceIcon(single ? i.name : i.total == null ? 'Ask' : money(i.total, { compact: true }), i.ref === activeRef)}
+              icon={priceIcon(
+                single ? i.name : i.total == null ? 'Ask' : money(i.total, { compact: true }),
+                i.ref === activeRef,
+              )}
               eventHandlers={{ mouseover: () => onHover?.(i.ref), mouseout: () => onHover?.(null) }}
               zIndexOffset={i.ref === activeRef ? 1000 : 0}
               title={i.name}
