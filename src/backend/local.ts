@@ -71,6 +71,7 @@ export function createLocalBackend(): Backend {
       listeners.add(cb);
       return () => listeners.delete(cb);
     },
+    googleEnabled: async () => true,
     async signInWithGoogle() {
       // No OAuth provider in demo mode — fall back to a demo account so the flow can be tried.
       await backend.signInDemo!('guest@demo.vellum', 'Demo Guest');

@@ -53,6 +53,8 @@ export interface Backend {
   getUser(): Promise<AppUser | null>;
   onAuthChange(cb: (u: AppUser | null) => void): () => void;
   signInWithGoogle(redirectTo: string): Promise<void>;
+  /** Whether Google sign-in is enabled on the auth server. */
+  googleEnabled(): Promise<boolean>;
   signInWithEmail(email: string, redirectTo: string): Promise<void>;
   signInDemo?(email: string, name?: string): Promise<AppUser>;
   signOut(): Promise<void>;

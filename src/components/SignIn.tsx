@@ -1,5 +1,5 @@
 import { Mail, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { backend } from '../backend';
 import { useApp } from '../store/app';
 import { Modal } from './ui';
@@ -39,6 +39,10 @@ export function SignInDialog() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const demo = backend.mode === 'demo';
+  const [google, setGoogle] = useState(true);
+  useEffect(() => {
+    if (open) void backend.googleEnabled().then(setGoogle);
+  }, [open]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,25 +75,29 @@ export function SignInDialog() {
           </div>
         ) : (
           <>
-            <button
-              className="btn-secondary w-full h-12"
-              onClick={async () => {
-                setBusy(true);
-                try {
-                  await backend.signInWithGoogle(redirectUrl());
-                } catch (err) {
-                  handleError(err, 'Google sign-in failed');
-                } finally {
-                  setBusy(false);
-                }
-              }}
-              disabled={busy}
-            >
-              <GoogleMark /> Continue with Google
-            </button>
-            <div className="flex items-center gap-3 text-xs text-muted">
-              <div className="h-px flex-1 bg-line" /> or <div className="h-px flex-1 bg-line" />
-            </div>
+            {google && (
+              <>
+                <button
+                  className="btn-secondary w-full h-12"
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await backend.signInWithGoogle(redirectUrl());
+                    } catch (err) {
+                      handleError(err, 'Google sign-in failed');
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                  disabled={busy}
+                >
+                  <GoogleMark /> Continue with Google
+                </button>
+                <div className="flex items-center gap-3 text-xs text-muted">
+                  <div className="h-px flex-1 bg-line" /> or <div className="h-px flex-1 bg-line" />
+                </div>
+              </>
+            )}
             <form onSubmit={submit} className="space-y-3">
               <label htmlFor="signin-email" className="text-sm font-medium">
                 Email

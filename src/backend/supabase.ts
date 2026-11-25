@@ -260,6 +260,15 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       });
       return () => data.subscription.unsubscribe();
     },
+    async googleEnabled() {
+      try {
+        const res = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: anonKey } });
+        const j = (await res.json()) as { external?: Record<string, boolean> };
+        return !!j.external?.google;
+      } catch {
+        return true; // can't tell; keep the button
+      }
+    },
     async signInWithGoogle(redirectTo) {
       const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
       if (error) throw new BackendError(error.message, 'auth');
