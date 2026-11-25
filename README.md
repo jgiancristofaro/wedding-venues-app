@@ -6,6 +6,12 @@ A private, photo-forward venue library that normalizes every venue's pricing —
 
 ---
 
+## Current setup status
+
+- GitHub Pages: enabled, deploying from `main`.
+- Supabase project `wedding-venues` (ref `wgjoqeimvdpzjjcotjze`, us-east-1): schema, RLS, storage bucket and 38 sample venues applied; admin `jgiancristofaro@gmail.com`; Edge Functions `ai` (flags off), `geocode`, `fetch-document`, `delete-account` deployed. The site build reads the public URL/anon key from `.env.production`.
+- **Still manual:** Supabase Auth → URL Configuration (Site URL + redirect URL below) and, optionally, the Google provider.
+
 ## ✅ Manual-action checklist
 
 **Get it live on GitHub Pages (Demo mode — ~2 minutes)**

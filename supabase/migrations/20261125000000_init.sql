@@ -23,7 +23,7 @@ create policy "admins can see admin list" on public.app_admins
 
 -- ─────────────────────────── Helpers ───────────────────────────
 create or replace function public.touch_updated_at() returns trigger
-language plpgsql as $$ begin new.updated_at = now(); return new; end $$;
+language plpgsql set search_path = public as $$ begin new.updated_at = now(); return new; end $$;
 
 -- ─────────────────────────── Global library ───────────────────────────
 create table if not exists public.global_venues (

@@ -23,11 +23,13 @@ jobs:
         env:
           # Served from https://<user>.github.io/<repo>/
           BASE_PATH: /${{ github.event.repository.name }}/
-          # Publishable values only. Leave unset to deploy in Demo mode.
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_ADMIN_EMAILS: ${{ vars.VITE_ADMIN_EMAILS }}
-        run: npm run build
+          OVERRIDE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          OVERRIDE_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        # Supabase settings come from .env.production; repo variables override them only when set.
+        run: |
+          if [ -n "$OVERRIDE_URL" ]; then export VITE_SUPABASE_URL="$OVERRIDE_URL"; fi
+          if [ -n "$OVERRIDE_KEY" ]; then export VITE_SUPABASE_ANON_KEY="$OVERRIDE_KEY"; fi
+          npm run build
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
   deploy:
