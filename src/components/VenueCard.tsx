@@ -83,7 +83,7 @@ function CardInner({ v, profile, distance }: { v: VenueView; profile: WeddingPro
     <>
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-sunken">
         <img src={photo.url} alt="" loading="lazy" decoding="async" draggable={false} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2">
+        <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between p-2">
           <CompareToggle v={v} />
           <HeartButton v={v} />
         </div>

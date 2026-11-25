@@ -63,7 +63,7 @@ export function PricingPlayground({
           </label>
           <label className="text-sm font-medium">
             Day
-            <select className="input mt-1" value={overrides.day ?? ''} disabled={!!overrides.date} onChange={(ev) => set({ day: ev.target.value === '' ? undefined : (+ev.target.value as DayOfWeek) })}>
+            <select aria-label="Day" className="input mt-1" value={overrides.day ?? ''} disabled={!!overrides.date} onChange={(ev) => set({ day: ev.target.value === '' ? undefined : (+ev.target.value as DayOfWeek) })}>
               <option value="">From profile</option>
               {DAY_NAMES.map((d, i) => (
                 <option key={d} value={i}>
@@ -74,7 +74,7 @@ export function PricingPlayground({
           </label>
           <label className="text-sm font-medium">
             Month
-            <select className="input mt-1" value={overrides.month ?? ''} disabled={!!overrides.date} onChange={(ev) => set({ month: ev.target.value === '' ? undefined : +ev.target.value })}>
+            <select aria-label="Month" className="input mt-1" value={overrides.month ?? ''} disabled={!!overrides.date} onChange={(ev) => set({ month: ev.target.value === '' ? undefined : +ev.target.value })}>
               <option value="">From profile</option>
               {MONTH_NAMES.map((m, i) => (
                 <option key={m} value={i + 1}>
@@ -87,7 +87,7 @@ export function PricingPlayground({
         {pkgs.length > 1 && (
           <label className="text-sm font-medium block">
             Package
-            <select className="input mt-1" value={overrides.packageId ?? ''} onChange={(ev) => set({ packageId: ev.target.value || undefined })}>
+            <select aria-label="Package" className="input mt-1" value={overrides.packageId ?? ''} onChange={(ev) => set({ packageId: ev.target.value || undefined })}>
               <option value="">Lowest-priced (default)</option>
               {pkgs.map((p) => (
                 <option key={p.id} value={p.id}>

@@ -47,7 +47,9 @@ function useStoredFilters(scope: string): [FilterState, (f: FilterState) => void
 function Progressive({ rows, render }: { rows: Row[]; render: (r: Row) => ReactNode }) {
   const [n, setN] = useState(36);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => setN(36), [rows]);
+  useEffect(() => {
+    setN(36);
+  }, [rows]);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;

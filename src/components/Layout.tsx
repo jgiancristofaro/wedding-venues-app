@@ -3,6 +3,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   MouseSensor,
+  pointerWithin,
   TouchSensor,
   useDroppable,
   useSensor,
@@ -101,7 +102,7 @@ function ThemeToggle() {
   const setTheme = useApp((s) => s.setTheme);
   const dark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && document.documentElement.classList.contains('dark'));
   return (
-    <button className="icon-btn" aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'} onClick={() => setTheme(dark ? 'light' : 'dark')}>
+    <button className="icon-btn hidden sm:inline-flex" aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'} onClick={() => setTheme(dark ? 'light' : 'dark')}>
       {dark ? <Sun size={18} /> : <Moon size={18} />}
     </button>
   );
@@ -113,7 +114,7 @@ function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 bg-bg/90 backdrop-blur border-b border-line/60">
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 h-16 md:h-[72px] flex items-center gap-4">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 h-16 md:h-[72px] flex items-center gap-2 sm:gap-4">
         <Logo />
         <nav aria-label="Main" className="hidden md:flex items-center gap-1 ml-4">
           {NAV.map((n) => (
@@ -130,7 +131,7 @@ function Header() {
         </nav>
         <button
           onClick={() => setProfileOpen(true)}
-          className="ml-auto flex items-center gap-2 rounded-full border border-line bg-surface pl-3 pr-4 h-10 text-sm hover:shadow-card transition max-w-[56vw]"
+          className="ml-auto min-w-0 flex-1 sm:flex-none flex items-center gap-2 rounded-full border border-line bg-surface pl-3 pr-4 h-10 text-sm hover:shadow-card transition sm:max-w-[40vw]"
           aria-label={`Wedding profile: ${profileSummary(profile)}. Edit`}
         >
           <span className="h-2 w-2 rounded-full bg-gold shrink-0" aria-hidden />
@@ -371,7 +372,7 @@ export function Layout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <DndContext sensors={sensors} onDragStart={onStart} onDragEnd={onEnd} onDragCancel={() => setDrag(null)} accessibility={{ announcements: {
+    <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={onStart} onDragEnd={onEnd} onDragCancel={() => setDrag(null)} accessibility={{ announcements: {
       onDragStart: () => `Picked up venue. Move to the compare tray and press space to drop.`,
       onDragOver: ({ over }) => (over ? 'Over the compare tray.' : 'Not over a drop target.'),
       onDragEnd: ({ over }) => (over ? 'Added to compare.' : 'Dropped.'),
