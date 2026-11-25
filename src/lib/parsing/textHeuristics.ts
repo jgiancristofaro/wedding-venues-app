@@ -93,7 +93,7 @@ export function detectMonths(l: string): number[] | undefined {
   if (range) return expandRange(monthNum(range[1]), monthNum(range[2]), 12);
   const found = [...l.matchAll(MONTH_RE)].map((m) => monthNum(m[1]));
   // "may" is ambiguous ("you may"), only accept it when other months appear or it's capitalized-like context
-  const filtered = found.filter((m, i, arr) => m !== 5 || arr.length > 1 || /\bmay\s+(\d|-|–|through|to)/.test(l));
+  const filtered = found.filter((m, _i, arr) => m !== 5 || arr.length > 1 || /\bmay\s+(\d|-|–|through|to)/.test(l));
   return filtered.length ? [...new Set(filtered)] : undefined;
 }
 

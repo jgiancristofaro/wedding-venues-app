@@ -1,0 +1,14 @@
+# Minimal Supabase CLI config. `supabase link --project-ref <ref>` then `supabase db push` and
+# `supabase functions deploy`. Auth redirect URLs are set in the dashboard (see README).
+project_id = "vellum-venues"
+
+[functions.ai]
+verify_jwt = false   # GET returns public feature flags; POST checks the user token itself
+[functions.geocode]
+verify_jwt = false
+[functions.fetch-document]
+verify_jwt = true
+[functions.delete-account]
+verify_jwt = true
+[functions.ingest]
+verify_jwt = true

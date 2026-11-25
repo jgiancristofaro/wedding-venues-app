@@ -1,0 +1,114 @@
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: 251 248 243;
+    --surface: 255 255 255;
+    --sunken: 244 240 233;
+    --ink: 31 27 22;
+    --muted: 102 94 85;
+    --line: 228 221 210;
+    --accent: 52 72 60;
+    --accent-ink: 255 255 255;
+    --gold: 168 132 78;
+    --rose: 190 74 84;
+    --ok: 38 112 72;
+    --warn: 150 98 12;
+    --bad: 176 52 52;
+    color-scheme: light;
+  }
+  .dark {
+    --bg: 20 19 17;
+    --surface: 30 28 26;
+    --sunken: 39 37 34;
+    --ink: 241 237 230;
+    --muted: 170 162 152;
+    --line: 60 56 51;
+    --accent: 168 196 175;
+    --accent-ink: 20 24 21;
+    --gold: 214 183 128;
+    --rose: 236 120 128;
+    --ok: 120 200 150;
+    --warn: 230 180 90;
+    --bad: 240 128 128;
+    color-scheme: dark;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  h1, h2, h3, .font-display {
+    @apply font-serif;
+    font-variation-settings: 'opsz' 72, 'SOFT' 50;
+    letter-spacing: -0.015em;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: rgb(var(--gold) / 0.3);
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 h-11 text-sm font-medium transition
+      disabled:opacity-50 disabled:cursor-not-allowed select-none whitespace-nowrap;
+  }
+  .btn-primary { @apply btn bg-accent text-accent-ink hover:brightness-110 active:brightness-95 shadow-sm; }
+  .btn-secondary { @apply btn bg-surface border border-line text-ink hover:bg-sunken; }
+  .btn-ghost { @apply btn text-ink hover:bg-sunken; }
+  .btn-sm { @apply h-9 px-3 text-[13px]; }
+  .icon-btn {
+    @apply inline-flex items-center justify-center rounded-full h-11 w-11 text-ink hover:bg-sunken transition shrink-0;
+  }
+  .input {
+    @apply w-full h-11 rounded-xl border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted
+      focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/60;
+  }
+  textarea.input { @apply h-auto py-2; }
+  .card { @apply bg-surface border border-line/70 rounded-2xl shadow-card; }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 h-9 text-[13px] text-ink
+      hover:border-ink/30 transition whitespace-nowrap;
+  }
+  .chip[aria-pressed='true'], .chip-on { @apply bg-ink text-bg border-ink; }
+  .label { @apply text-xs font-medium uppercase tracking-[0.12em] text-muted; }
+  .skeleton {
+    background: linear-gradient(90deg, rgb(var(--sunken)) 0, rgb(var(--line) / 0.6) 50%, rgb(var(--sunken)) 100%);
+    background-size: 800px 100%;
+    @apply animate-shimmer rounded-xl;
+  }
+  .prose-note p { @apply my-1; }
+  .prose-note ul { @apply list-disc pl-5; }
+  .prose-note ol { @apply list-decimal pl-5; }
+  .prose-note a { @apply underline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  header, nav, .no-print, [data-no-print] { display: none !important; }
+  body { background: white; }
+  .card { box-shadow: none; break-inside: avoid; }
+  main { padding: 0 !important; }
+}
+
+.leaflet-container { font-family: inherit; background: rgb(var(--sunken)); }
+.dark .leaflet-tile { filter: brightness(0.75) contrast(1.1) saturate(0.6); }

@@ -280,7 +280,8 @@ export function evaluateScenario(rules: PricingRules, s: Scenario, opts: EvalOpt
         (c.unit === 'flat' ? usd(rate.amount) : `${qty} × ${usd(rate.amount)}${c.unit === 'per_hour' ? '/hr' : '/guest'}`) +
         (c.required ? ' · required' : ' · selected'),
     });
-    if (cat === 'fnb') fnbFromVenue = fnbProvided = true;
+    // Bar/corkage/cake fees are F&B charges (subject to service) but don't feed the guests.
+    if (cat === 'fnb') fnbFromVenue = true;
   }
 
   // 4. Overtime

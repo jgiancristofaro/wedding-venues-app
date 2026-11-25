@@ -19,5 +19,5 @@
     "noUncheckedSideEffectImports": false,
     "types": ["vite/client"]
   },
-  "include": ["src", "supabase/functions/_shared/aiCore.ts", "supabase/functions/_shared/schema.ts"]
+  "include": ["src", "supabase/functions/_shared/aiCore.ts"]
 }

@@ -184,7 +184,7 @@ function ceremony(p: Palette, r: () => number, id: string) {
 <path d="M270 400 L270 220 Q400 120 530 220 L530 400" fill="none" stroke="${p.ink}" stroke-opacity=".5" stroke-width="5"/>${flowers}${chairs}`;
 }
 
-function reception(p: Palette, r: () => number, id: string) {
+function reception(p: Palette) {
   let lights = '';
   for (let k = 0; k < 4; k++) {
     const y0 = 60 + k * 45;
@@ -244,7 +244,7 @@ export function generatedPhotos(seedKey: string, fields: VenueFields): Photo[] {
   const photos: Photo[] = [
     { url: toDataUri(exterior(fields, p, r, false, id + 'a')), caption: 'Exterior (illustration)', source: 'generated' },
     { url: toDataUri(ceremony(p, r, id + 'b')), caption: 'Ceremony (illustration)', source: 'generated' },
-    { url: toDataUri(reception(p, r, id + 'c')), caption: 'Reception (illustration)', source: 'generated' },
+    { url: toDataUri(reception(p)), caption: 'Reception (illustration)', source: 'generated' },
     { url: toDataUri(detail(p, r)), caption: 'Table detail (illustration)', source: 'generated' },
     { url: toDataUri(exterior(fields, NIGHT, rng(h + 7), true, id + 'd')), caption: 'Evening (illustration)', source: 'generated' },
   ];
